@@ -13,7 +13,7 @@ from monitorcontrol import get_monitors
 for monitor in get_monitors():
     with monitor:
         monitor.set_parameter("image_luminance", 100)
-        monitor.set_parameter("image_contrast", 100)
+        monitor.set_parameter("image_contrast", 75)
         monitor.set_parameter("video_gain_blue", 50)
         monitor.set_parameter("video_gain_green", 50)
         monitor.set_parameter("video_gain_red", 50)

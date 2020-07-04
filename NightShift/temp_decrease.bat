@@ -1,2 +1,2 @@
 @echo off
-py ddc/temp_control.py -10
+py ddc/temp_control.py -20
