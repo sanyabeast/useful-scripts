@@ -9,14 +9,15 @@ from monitorcontrol import Monitor
 from monitorcontrol.__main__ import main
 from monitorcontrol import get_monitors
 
-luminance = 0
+luminance = 15
+step = 10
 
 for monitor in get_monitors():
     with monitor:
         luminance = monitor.get_luminance()
         break
 
-luminance += int(args.increment)
+luminance += int(args.increment * step)
 
 if 0 > luminance:
     luminance = 0
