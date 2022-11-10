@@ -38,9 +38,9 @@ echo OUTPUT FILE: %OUTPUT%
 
 
 set /P c=ARE YOU SURE TO START ENCODING?[Y/N]?
-if /I "%c%" EQU "Y" goto :start
 if /I "%c%" EQU "N" goto :setup
-goto :setup
+if /I "%c%" EQU "Y" goto :start
+goto :start
 
 :start
 echo RUNNING COMMAND
