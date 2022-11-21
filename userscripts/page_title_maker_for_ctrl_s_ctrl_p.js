@@ -7,6 +7,7 @@
 // @match        */*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=chezzo.com
 // @grant    GM_setClipboard
+// @license MIT
 // ==/UserScript==
 
 (function () {

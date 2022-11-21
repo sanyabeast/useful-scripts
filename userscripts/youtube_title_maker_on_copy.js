@@ -7,6 +7,7 @@
 // @match        https://www.youtube.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @grant    GM_setClipboard
+// @license MIT
 // ==/UserScript==
 
 (function () {
