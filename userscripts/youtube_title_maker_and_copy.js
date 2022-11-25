@@ -1,30 +1,25 @@
 // ==UserScript==
-// @name         Rundavou Youtube
-// @namespace    http://tampermonkey.net/
-// @version      0.1
+// @name         Youtube Title Maker & Copier
+// @namespace    http://sanyabeast.xyz/
+// @version      1.1
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.youtube.com/*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @grant    GM_setClipboard
-// @license MIT
 // ==/UserScript==
 
 (function () {
     'use strict';
-    console.log(1);
-
-    let max_filename_length = 255;
+    let max_filename_length = 128;
     let ellipsis = '…'
-    let emojis = [''];
-    console.log(emojis)
+    let substitutes = [''];
     let symbols = []
-    function get_random_allowed_symbol() { return emojis[Math.floor(Math.random() * emojis.length)] }
+    function get_random_allowed_symbol() { return substitutes[Math.floor(Math.random() * substitutes.length)] }
     function clog() { console.log("%c[rundavou-yt] [i]", 'color: #ff9800;', ...arguments) }
     function string_to_filename(v) { return v.replace(/[^a-z^A-Z^а-я^А-Я^0-9^_,. іІїЇєЄҐґ]/gmi, get_random_allowed_symbol()).replace(/ +(?= )/g, '') }
     let elements = {
-        get video_title() { return document.querySelector('h1.ytd-watch-metadata yt-formatted-string'); },
-        get channel_author_name() { return document.querySelector('div.ytd-channel-name a'); },
+        get video_title() { return document.querySelector('#title > h1 > yt-formatted-string'); },
+        get channel_author_name() { return document.querySelector('#text > a'); },
     };
 
     let scenarios = [
@@ -52,13 +47,15 @@
     event_names.forEach((event_name) => {
         window.addEventListener(event_name, (evt) => {
             if (!evt.shiftKey) {
-                scenarios.forEach((scenario, index) => {
+                for (let i = 0; i < scenarios.length; i++) {
+                    let scenario = scenarios[i];
                     clog(`checking conditions for scenario "${scenario.name}"`)
                     if (scenario.check(evt.target, event_name, evt)) {
                         clog(`running scenario "${scenario.name}"`)
                         scenario.handle(evt.target, event_name, evt);
+                        break;
                     }
-                })
+                }
             }
         }, false)
     });
