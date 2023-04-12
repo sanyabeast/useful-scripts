@@ -1,0 +1,4 @@
+PyYAML==6.0
+deepmerge==1.1.0
+psutil==5.9.4
+PyAutoGUI==0.9.53
