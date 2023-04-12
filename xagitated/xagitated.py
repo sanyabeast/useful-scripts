@@ -10,6 +10,7 @@ import psutil
 import argparse
 import pprint
 import pyautogui
+import pulsectl
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -37,13 +38,14 @@ DEFAULT_CONFIG = {
   }
 }
 
-MAIN_TICK_DURATION = 29
-AC_CHECK_INTERVAL = 51
+MAIN_TICK_DURATION = 14
+AC_CHECK_INTERVAL = 39
 AUDIO_CHECK_INTERVAL = 29
 CPU_CHECK_INTERVAL = 15
-NETWORK_CHECK_INTERVAL = 55
+NETWORK_CHECK_INTERVAL = 42
 USER_CHECK_INTERVAL = 1
 TTS_CHECK_INTERVAL = 5
+LOCK_SCREEN_CHECK_INTERVAL = 29
 
 # get the absolute path of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -67,6 +69,15 @@ def run_command(command, *args):
     except subprocess.CalledProcessError as e:
         logd(f"Command failed: {e}")
         return None
+
+def get_system_volume_level():
+    with pulsectl.Pulse('get-current-payback-volume') as pulse:
+        sink = pulse.sink_list()[0]
+        if sink.mute:
+            return 0
+        else:
+            volume = int(round(sink.volume.value_flat * 100))
+            return volume
 
 timer_gate_ids = {}
 def timer_gate(id, timeout):
@@ -93,6 +104,8 @@ class Commands:
     set_display_blank_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-battery -s {}"
     set_dpms_sleep_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-sleep -s {}"
     set_dpms_off_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-off -s {}"
+    set_brightness_level_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/brightness-level-on-battery -s {}"
+    set_brightness_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/brightness-on-battery -s {}"
     show_screensaver_status = "xfce4-screensaver-command -q"
 
 class PowerManager:
@@ -116,7 +129,10 @@ class PowerManager:
     def is_power_supplied(self):
         # Run the acpi command and capture the output
         if timer_gate('ac_check', AC_CHECK_INTERVAL) or self._is_power_supplied == None:
-            self._is_power_supplied = 'on-line' in subprocess.check_output(['acpi', '-a']).decode().strip()
+            new_val = 'on-line' in subprocess.check_output(['acpi', '-a']).decode().strip()
+            if (self._is_power_supplied != new_val):
+                self.handle_power_state_changed(new_val)
+            self._is_power_supplied = new_val
             logd(f'ac connection state updated: {self._is_power_supplied}')
         return self._is_power_supplied
 
@@ -125,7 +141,7 @@ class PowerManager:
     @property
     def is_audio_playing(self):
         if timer_gate('audio_check', AUDIO_CHECK_INTERVAL) or self._is_audio_playing == None:
-            self._is_audio_playing = 'State: RUNNING' in  subprocess.check_output(['pactl', 'list']).decode()
+            self._is_audio_playing = get_system_volume_level() > 0 and 'State: RUNNING' in  subprocess.check_output(['pactl', 'list']).decode()
             logd(f'audio payback status update: {self._is_audio_playing}')
         return self._is_audio_playing
 
@@ -143,7 +159,7 @@ class PowerManager:
     _lockscreen_active = None
     @property
     def lockscreen_active(self):
-        if timer_gate('lockscreen_active', 5) or self._lockscreen_active == None:
+        if timer_gate('lockscreen_active', LOCK_SCREEN_CHECK_INTERVAL) or self._lockscreen_active == None:
             cmd = 'xfce4-screensaver-command -q'
             output = subprocess.check_output(cmd, shell=True).decode('utf-8')
             self._lockscreen_active = 'inactive' not in output
@@ -186,9 +202,9 @@ class PowerManager:
             inactivity_timeout = (CONFIG['sleep_timeout'] if self.is_agitated else CONFIG['defaults']['sleep_timeout']) * 60
             inactivity_time = float(run_command(Commands.get_idle_time)) / 1000
             self._time_to_sleep = round(inactivity_timeout - inactivity_time, 2)
-            print(f'ff {inactivity_timeout}, gg {inactivity_time}')
             logd(f'tts update: {self._time_to_sleep} s')
         return self._time_to_sleep
+
 
     # activity simulation
     def simulate_activity(self):
@@ -223,17 +239,40 @@ class PowerManager:
         run_command(Commands.set_dpms_sleep_on_battery, CONFIG['defaults']['dpms_on_battery_sleep'])
         run_command(Commands.set_dpms_off_on_battery, CONFIG['defaults']['dpms_on_battery_off'])  
         logd('display power manager settings reset to defaults')
+
+    # brightness
+    is_battery_brightness_enabled = None
+    def set_battery_brightness_on(self):
+        if not self.is_battery_brightness_enabled or self.is_battery_brightness_enabled == None:
+            self.is_battery_brightness_enabled = True
+            run_command(Commands.set_brightness_on_battery, 60)
+            run_command(Commands.set_brightness_level_on_battery, CONFIG['brightness_level_on_battery'])
+            logd('battery_brightness enabled')
+        pass
+    def set_battery_brightness_off(self):
+        if self.is_battery_brightness_enabled or self.is_battery_brightness_enabled == None:
+            self.is_battery_brightness_enabled = False
+            run_command(Commands.set_brightness_on_battery, 9)
+            logd('battery_brightness disabled')
+        pass  
+    def reset_battery_brightness_settings(self):
+        run_command(Commands.set_brightness_on_battery, CONFIG['defaults']['brightness_on_battery'])
+        run_command(Commands.set_brightness_level_on_battery, CONFIG['defaults']['brightness_level_on_battery'])
+        logd('battery_brightness reset to defaults')
+
     # agitation and chilling
     is_agitated = None 
     def agitate(self, reason = ""):
         if not self.is_agitated or self.is_agitated == None:
             self.inactivity_timeout = CONFIG['sleep_timeout']
             self.is_agitated = True
+            self.set_battery_brightness_off()
             logd(f'AGITATED!. reason: "{reason}"')
     def chill(self):
         if self.is_agitated or self.is_agitated == None:
             self.inactivity_timeout = CONFIG['defaults']['sleep_timeout']
             self.is_agitated = False
+            self.set_battery_brightness_on()
             if (self.user_activity < 0.15):
                 self.simulate_activity()
             logd(f'*CHILLED*.')
@@ -242,10 +281,21 @@ class PowerManager:
         logd('applying default settings')
         self.chill()
         self.reset_display_pm_settings()
+        self.reset_battery_brightness_settings()
+
+
+    # handlers
+    def handle_power_state_changed(self, is_power_supplied):
+        logd(f'power state changed. supplied: {is_power_supplied}')
+        if (is_power_supplied):
+            self.reset()
+        else:
+            if (self.user_activity < 0.15):
+                self.simulate_activity()
 
     def update(self):
         if timer_gate('main_tick', MAIN_TICK_DURATION):
-            if IS_DEBUG or not self.is_power_supplied:
+            if not self.is_power_supplied:
                 if 'audio_payback' in CONFIG['standard_inhibitors'] and self.is_audio_playing:
                     self.agitate('audio payback')
                 elif 'cpu_usage' in CONFIG['standard_inhibitors'] and self.cpu_usage >= CONFIG['cpu_usage_treshold']:
@@ -255,7 +305,7 @@ class PowerManager:
                 else:
                     self.chill()
             
-            if IS_DEBUG or (CONFIG['lockscreen_display']):
+            if (CONFIG['lockscreen_display']):
                 if self.lockscreen_active:
                     self.set_lockscreen_display_on()
                 else:
