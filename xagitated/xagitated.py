@@ -88,6 +88,12 @@ class Commands:
     restart_pm = "xfce4-power-manager --restart"
     suspend_system = "xfce4-session-logout --suspend"
     get_idle_time = "xprintidle"
+    set_dpms_on = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-enabled bool -s true"
+    set_dpms_off = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-enabled bool -s false"
+    set_display_blank_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/blank-on-battery -s {}"
+    set_dpms_sleep_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-sleep -s {}"
+    set_dpms_off_on_battery = "xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-on-battery-off -s {}"
+    show_screensaver_status = "xfce4-screensaver-command -q"
 
 class PowerManager:
     def __init__(self) -> None:
@@ -131,6 +137,18 @@ class PowerManager:
             self._cpu_usage = cpu_usage = psutil.cpu_percent()
             logd(f'cpu usage update: {self._cpu_usage}%')
         return self._cpu_usage
+    
+
+    # lockscreen_active
+    _lockscreen_active = None
+    @property
+    def lockscreen_active(self):
+        if timer_gate('lockscreen_active', 5) or self._lockscreen_active == None:
+            cmd = 'xfce4-screensaver-command -q'
+            output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+            self._lockscreen_active = 'inactive' not in output
+            logd(f'lockscreen_active update: {self._lockscreen_active}%')
+        return self._lockscreen_active
 
     # network check
     _network_activity = None
@@ -179,15 +197,41 @@ class PowerManager:
         time.sleep(1/120)
         pyautogui.moveRel(-1, 0)
 
+    # display 
+    is_lockscreen_display_enabled = None
+    def set_lockscreen_display_on(self):
+        if not self.is_lockscreen_display_enabled or self.is_lockscreen_display_enabled == None:
+            self.is_lockscreen_display_enabled = True
+            run_command(Commands.set_dpms_on)
+            run_command(Commands.set_display_blank_on_battery, 0)
+            run_command(Commands.set_dpms_sleep_on_battery, 0)
+            run_command(Commands.set_dpms_off_on_battery, 1)
+            logd('lockscreen diplay settings enabled')
+        pass
+    def set_lockscreen_display_off(self):
+        if self.is_lockscreen_display_enabled or self.is_lockscreen_display_enabled == None:
+            self.is_lockscreen_display_enabled = False
+            run_command(Commands.set_dpms_off)
+            run_command(Commands.set_display_blank_on_battery, 60)
+            run_command(Commands.set_dpms_sleep_on_battery, 60)
+            run_command(Commands.set_dpms_off_on_battery, 60)
+            logd('lockscreen diplay settings disabled')
+        pass  
+    def reset_display_pm_settings(self):
+        run_command(Commands.set_dpms_on if CONFIG['defaults']['dpms_enabled'] else Commands.set_dpms_off)
+        run_command(Commands.set_display_blank_on_battery, CONFIG['defaults']['blank_on_battery'])
+        run_command(Commands.set_dpms_sleep_on_battery, CONFIG['defaults']['dpms_on_battery_sleep'])
+        run_command(Commands.set_dpms_off_on_battery, CONFIG['defaults']['dpms_on_battery_off'])  
+        logd('display power manager settings reset to defaults')
     # agitation and chilling
-    is_agitated = False 
+    is_agitated = None 
     def agitate(self, reason = ""):
-        if not self.is_agitated:
+        if not self.is_agitated or self.is_agitated == None:
             self.inactivity_timeout = CONFIG['sleep_timeout']
             self.is_agitated = True
             logd(f'AGITATED!. reason: "{reason}"')
     def chill(self):
-        if self.is_agitated:
+        if self.is_agitated or self.is_agitated == None:
             self.inactivity_timeout = CONFIG['defaults']['sleep_timeout']
             self.is_agitated = False
             if (self.user_activity < 0.15):
@@ -197,6 +241,7 @@ class PowerManager:
     def reset(self):
         logd('applying default settings')
         self.chill()
+        self.reset_display_pm_settings()
 
     def update(self):
         if timer_gate('main_tick', MAIN_TICK_DURATION):
@@ -209,6 +254,12 @@ class PowerManager:
                     self.agitate(f'network activity ({self.network_activity})')
                 else:
                     self.chill()
+            
+            if IS_DEBUG or (CONFIG['lockscreen_display']):
+                if self.lockscreen_active:
+                    self.set_lockscreen_display_on()
+                else:
+                    self.set_lockscreen_display_off()
 
 power_looper = PowerManager()
 

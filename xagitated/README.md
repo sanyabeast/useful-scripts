@@ -6,18 +6,22 @@
 sudo apt install xprintidle
 ```
 
+```
+pip install 
+```
+
 ## checking service status
 
 service status:
 
 ```
-sudo systemctl status xagitated.service 
+systemctl --user status xagitated.service 
 ```
 
 serice journal:
 
 ```
-sudo journalctl -u xagitated.service  -f
+journalctl --user -u xagitated.service  -f
 ```
 
 
@@ -38,8 +42,8 @@ WantedBy=multi-user.target
 setting service up for the first time:
 
 ```
-sudo systemctl daemon-reload
-sudo systemctl enable xagitated.service 
-sudo systemctl start xagitated.service 
+systemctl --user daemon-reload
+systemctl --user enable xagitated.service 
+systemctl --user start xagitated.service 
 
 ```
