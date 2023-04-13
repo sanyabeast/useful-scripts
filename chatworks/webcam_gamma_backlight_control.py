@@ -4,7 +4,9 @@ import cv2
 import numpy as np
 import os
 
-AUTOAJUST_INTERVAL = 15 * 60
+AUTOAJUST_INTERVAL = 15 * 60 - 1
+IDLE_AUTOAJUST_TIMEOUT = 3 * 60 - 1
+MAIN_TICK_DURATION = 29
 MIN_BRIGHTNESS = 0.25
 GAMMA_CURVE = 1/3
 
@@ -56,7 +58,7 @@ while True:
     if (is_on_battery()):
         now = time.time()
         needs_update = now - prev_autoajust_time > AUTOAJUST_INTERVAL
-        if (get_idle_time() > 59):
+        if (get_idle_time() > IDLE_AUTOAJUST_TIMEOUT):
             if not idle_update_done:
                 idle_update_done = True
                 needs_update = True
@@ -74,4 +76,4 @@ while True:
 
                 prev_autoajust_time = now
 
-    time.sleep(29)
+    time.sleep(MAIN_TICK_DURATION)
