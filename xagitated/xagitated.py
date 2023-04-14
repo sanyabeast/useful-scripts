@@ -215,16 +215,16 @@ class PowerManager:
 
     # display 
     is_lockscreen_display_enabled = None
-    def set_lockscreen_display_on(self):
+    def set_display_pm_on(self):
         if not self.is_lockscreen_display_enabled or self.is_lockscreen_display_enabled == None:
             self.is_lockscreen_display_enabled = True
             run_command(Commands.set_dpms_on)
             run_command(Commands.set_display_blank_on_battery, 0)
             run_command(Commands.set_dpms_sleep_on_battery, 0)
-            run_command(Commands.set_dpms_off_on_battery, 1)
+            run_command(Commands.set_dpms_off_on_battery, 2)
             logd('lockscreen diplay settings enabled')
         pass
-    def set_lockscreen_display_off(self):
+    def set_display_pm_off(self):
         if self.is_lockscreen_display_enabled or self.is_lockscreen_display_enabled == None:
             self.is_lockscreen_display_enabled = False
             run_command(Commands.set_dpms_off)
@@ -304,12 +304,15 @@ class PowerManager:
                     self.agitate(f'network activity ({self.network_activity})')
                 else:
                     self.chill()
-            
-            if (CONFIG['lockscreen_display']):
-                if self.lockscreen_active:
-                    self.set_lockscreen_display_on()
+        
+
+            if CONFIG['lockscreen_display'] and self.lockscreen_active:
+                self.set_display_pm_on()
+            else:
+                if CONFIG['display_power_management_on_chill'] and not self.is_agitated:
+                    self.set_display_pm_on()
                 else:
-                    self.set_lockscreen_display_off()
+                    self.set_display_pm_off
 
 power_looper = PowerManager()
 
