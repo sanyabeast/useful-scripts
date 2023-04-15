@@ -41,7 +41,7 @@ DEFAULT_CONFIG = {
 MAIN_TICK_DURATION = 14
 AC_CHECK_INTERVAL = 39
 AUDIO_CHECK_INTERVAL = 29
-CPU_CHECK_INTERVAL = 15
+CPU_CHECK_INTERVAL = 14
 NETWORK_CHECK_INTERVAL = 42
 USER_CHECK_INTERVAL = 1
 TTS_CHECK_INTERVAL = 5
@@ -221,7 +221,7 @@ class PowerManager:
             run_command(Commands.set_dpms_on)
             run_command(Commands.set_display_blank_on_battery, 0)
             run_command(Commands.set_dpms_sleep_on_battery, 0)
-            run_command(Commands.set_dpms_off_on_battery, 2)
+            run_command(Commands.set_dpms_off_on_battery, 1)
             logd('lockscreen diplay settings enabled')
         pass
     def set_display_pm_off(self):
@@ -309,10 +309,13 @@ class PowerManager:
             if CONFIG['lockscreen_display'] and self.lockscreen_active:
                 self.set_display_pm_on()
             else:
-                if CONFIG['display_power_management_on_chill'] and not self.is_agitated:
-                    self.set_display_pm_on()
+                if self.is_agitated:
+                    self.set_display_pm_off()
                 else:
-                    self.set_display_pm_off
+                    if CONFIG['display_power_management_on_chill']:
+                        self.set_display_pm_on()
+                    else:
+                        self.set_display_pm_off()
 
 power_looper = PowerManager()
 
