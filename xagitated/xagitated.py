@@ -221,7 +221,7 @@ class PowerManager:
             run_command(Commands.set_dpms_on)
             run_command(Commands.set_display_blank_on_battery, 0)
             run_command(Commands.set_dpms_sleep_on_battery, 0)
-            run_command(Commands.set_dpms_off_on_battery, 1)
+            run_command(Commands.set_dpms_off_on_battery, 3)
             logd('lockscreen diplay settings enabled')
         pass
     def set_display_pm_off(self):

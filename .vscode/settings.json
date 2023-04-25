@@ -55,5 +55,6 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "python.analysis.typeCheckingMode": "basic"
 }
