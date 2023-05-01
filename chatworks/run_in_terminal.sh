@@ -17,6 +17,6 @@ fi
 launch_time=$(date "+%Y-%m-%d %H:%M:%S")
 
 # Combine launch_time and title
-terminal_title="$launch_time - $title"
+terminal_title="$title | $launch_time"
 
 $1 -T "$terminal_title" -e "bash -c '$2; read -n1 -r -p \"Press any key to close the terminal...\"'"
