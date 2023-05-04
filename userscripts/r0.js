@@ -209,6 +209,25 @@
                     }
                 }
                 return result;
+            },
+            wait(seconds = 1) {
+                return new Promise((resolve) => setTimeout(resolve, seconds))
+            },
+            wait_for_elements(selector, elements_count = 1, timeout = 30 * 1000) {
+                return new Promise((resolve, reject) => {
+                    let started_at = +new Date()
+                    let id = setInterval(() => {
+                        let elements = document.querySelectorAll(selector)
+                        if (elements.length == elements_count) {
+                            clearInterval(id)
+                            resolve(elements)
+                        }
+                        if (+new Date() - started_at >= timeout) {
+                            clearInterval(id)
+                            reject()
+                        }
+                    }, 1000 / 15)
+                })
             }
         },
         libs_loaders: {
