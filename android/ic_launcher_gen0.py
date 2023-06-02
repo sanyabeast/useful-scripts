@@ -1,3 +1,6 @@
+# created by @sanyabeat
+# 18 may 2023, Kyiv, Ukraine
+
 import os
 import sys
 import argparse
