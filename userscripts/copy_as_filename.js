@@ -15,7 +15,7 @@ function copySelectedAsFilename() {
     const selectedText = window.getSelection().toString();
 
     // Remove disallowed symbols and replace them with '-'
-    const sanitizedText = selectedText.replace(/[<>:"\/\\|?*\x00-\x1F]/g, "-");
+    const sanitizedText = selectedText.replace(/[<>:"\/\\|?*\x00-\x1F]/g, "");
 
     // Copy the sanitized text to the clipboard
     GM_setClipboard(sanitizedText);
