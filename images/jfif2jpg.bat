@@ -11,4 +11,3 @@ for /r "%folder%" %%f in (*.jfif) do (
 )
 
 echo Renamed %count% files.
-pause
