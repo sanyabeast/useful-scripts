@@ -8,7 +8,8 @@
 function getPlaylists(toJson = false, oneLinersOnly = false) {
     // Initialize the playlists object
     const playlists = {
-        playlists: []
+        playlists: [],
+        count: 0
     };
 
     // Select all containers that hold the playlists
@@ -19,7 +20,8 @@ function getPlaylists(toJson = false, oneLinersOnly = false) {
         // Initialize a playlist object for each container
         const playlist = {
             tracks: [],
-            oneLiners: []
+            oneLiners: [],
+            size: 0
         };
 
         // Select all items within the container
@@ -46,13 +48,15 @@ function getPlaylists(toJson = false, oneLinersOnly = false) {
 
         // Add the playlist to the playlists array if it contains any tracks
         if (playlist.oneLiners.length > 0) {
+            playlist.size = playlist.oneLiners.length
             playlists.playlists.push(playlist);
         }
     });
 
+    playlists.count = playlists.playlists.length
     // Return the playlists object or its JSON string representation based on the toJson parameter
     return toJson ? JSON.stringify(playlists) : playlists;
 }
 
 // Example usage: Retrieve playlists as a JSON string with detailed track information
-getPlaylists(true, false);
+console.log(getPlaylists(false, true))
