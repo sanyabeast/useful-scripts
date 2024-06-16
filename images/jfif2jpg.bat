@@ -10,4 +10,9 @@ for /r "%folder%" %%f in (*.jfif) do (
   set /a "count+=1"
 )
 
+for /r "%folder%" %%f in (*.jpeg) do (
+  ren "%%f" "%%~nf.jpg"
+  set /a "count+=1"
+)
+
 echo Renamed %count% files.
