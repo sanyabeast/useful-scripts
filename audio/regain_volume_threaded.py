@@ -1,6 +1,3 @@
-# example: python amplify_audio.py "path_to_your_file_or_folder" 8000 256k 4
-# 4 here is threads number
-
 import os
 import sys
 import signal
@@ -15,6 +12,10 @@ def calculate_average_amplitude(audio):
     raw_data = np.array(audio.get_array_of_samples())
     return np.mean(np.abs(raw_data))
 
+def calculate_max_amplitude(audio):
+    raw_data = np.array(audio.get_array_of_samples())
+    return np.max(np.abs(raw_data))
+
 def calculate_required_gain(current_avg, target_avg=8000):
     return 20 * np.log10(target_avg / current_avg)
 
@@ -26,11 +27,17 @@ def amplify_audio(file_path, target_avg=8000, bitrate="256k"):
         # Load the audio file
         audio = AudioSegment.from_file(file_path)
         
-        # Calculate the current average amplitude
+        # Calculate the current average and max amplitude
         current_avg = calculate_average_amplitude(audio)
+        current_max = calculate_max_amplitude(audio)
         
         # Calculate the required gain in dB
         required_gain_db = calculate_required_gain(current_avg, target_avg)
+        
+        # Ensure we do not exceed the max amplitude
+        max_possible_gain = 20 * np.log10(32767 / current_max)  # 32767 is the max amplitude for 16-bit audio
+        if required_gain_db > max_possible_gain:
+            required_gain_db = max_possible_gain
         
         # Amplify the audio
         amplified_audio = audio + required_gain_db
@@ -45,6 +52,7 @@ def amplify_audio(file_path, target_avg=8000, bitrate="256k"):
         
         print(f"File: {file_path}")
         print(f"Current average amplitude: {current_avg:.2f}")
+        print(f"Current max amplitude: {current_max:.2f}")
         print(f"Required gain: {required_gain_db:.2f} dB")
         print(f"Amplified file saved to: {new_file_path}")
     except Exception as e:
