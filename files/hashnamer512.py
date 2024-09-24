@@ -17,8 +17,8 @@ def generate_random_string(length):
 
 
 def generate_file_hash(file_path):
-    """Generate MD5 hash from file content."""
-    hasher = hashlib.md5()
+    """Generate SHA-512 hash from file content."""
+    hasher = hashlib.sha512()
     with open(file_path, 'rb') as f:
         for chunk in iter(lambda: f.read(4096), b''):
             hasher.update(chunk)
