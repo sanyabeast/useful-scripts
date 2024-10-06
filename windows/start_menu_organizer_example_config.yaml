@@ -1,0 +1,114 @@
+# Sample YAML file
+
+input_menus:
+  - C:\Users\retr0\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
+  - C:\ProgramData\Microsoft\Windows\Start Menu\Programs
+  
+output_menu: C:\Users\retr0\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
+
+misc_folder: "_ More"
+
+temp_folder: "./start_menu_temp"
+
+folders:
+  
+  _ Communicate:
+    - Discord
+    - Telegram
+  _ Development:
+    - Git Bash
+    - GitHub Desktop
+    - Godot v4.2.2
+    - Godot v4.2.2-mono
+    - Postman
+    - Visual Studio 2022
+    - Android Studio
+    - Visual Studio Code
+    - Visual Studio Installer
+    - Genymotion
+  _ Gaming:
+    - EA
+    - Emulation Station - Desktop Edition (ES-DE)
+    - GOG Galaxy
+    - RetroArch
+    - Sunshine
+    - Ubisoft Connect
+    - Battle.net
+    - Steam
+    - rpcs3
+    - pcsx2-qt
+    - yuzu
+  _ Machine Learning:
+    - Amuse
+    - GPT4All
+    - Stable Diffusion - Web UI 1.10
+  _ Scripts:
+    - _ Run Casual Scripts
+    - Fix Image Formats
+    - Regenerate Music Playlists
+    - Organize Start Menu
+  _ System & Hardware:
+    - "AMD Software꞉ Adrenalin Edition"
+    - CPU-Z
+    - GPU-Z
+    - HWiNFO64
+    - HWMonitor
+    - WizTree
+    - EarTrumpet
+    - Galaxy Buds
+    - OpenRGB
+    - Benchmark - CrystalDiskMark 8
+    - Benchmark - FurMark2 x64
+    - Benchmark - Superposition
+    - Benchmark - Valley
+    - Logitech G HUB
+    - Equalizer - Configurator
+    - Equalizer - Configuration Editor
+    - 7+ Taskbar Tweaker
+    - MiniBin
+  _ Tools:
+    - AIMP - AudioConverter
+    - AIMP - TagEditor
+    - Blender 3.6
+    - FileZilla
+    - GIMP 2.10.38
+    - Krita (x64)
+    - OBS Studio (64bit)
+    - Oracle VM VirtualBox
+    - RustDesk
+    - Upscayl
+    - XMedia Recode 64bit
+  _ Windows Accessories:
+    - Windows PowerShell
+    - Command Prompt
+    - File Explorer
+    - Notepad
+    - Paint
+    - Remote Desktop Connection
+    - Run
+    - Snipping Tool
+    - Task Manager
+    - Internet Explorer
+    - Microsoft Edge
+  _ Windows Administrative Tools:
+    - Defragment Disks
+    - Control Panel
+    - Administrative Tools
+    - Component Services
+    - Computer Management
+    - Defragment and Optimize Drives
+    - Disk Cleanup
+    - Event Viewer
+    - iSCSI Initiator
+    - Local Security Policy
+    - Performance Monitor
+    - PowerToys (Preview)
+    - Registry Editor
+    - Resource Monitor
+    - Services
+    - System Configuration
+    - System Information
+    - Task Scheduler
+    - Windows Defender Firewall with Advanced Security
+    - Windows Memory Diagnostic
+    - Security Configuration Management
