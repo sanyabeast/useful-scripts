@@ -1,4 +1,4 @@
-# created by @sanyabeat
+# created by @sanyabeast
 # 18 may 2023, Kyiv, Ukraine
 
 import os
