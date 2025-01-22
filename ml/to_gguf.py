@@ -2,6 +2,7 @@ import sys
 from safetensors.torch import load_file
 import struct
 import numpy as np
+import torch
 
 def quantize_tensor(tensor, quantization_type):
     """
@@ -38,6 +39,12 @@ def convert_to_gguf(input_path, output_path, quantization_type=None):
             # Write tensor data
             for tensor_name, tensor in tensors.items():
                 tensor_data = tensor.numpy()
+
+                # Handle unsupported bfloat16 type
+                if tensor.dtype == torch.bfloat16:
+                    print(f"Converting tensor '{tensor_name}' from bfloat16 to float32...")
+                    tensor = tensor.to(torch.float32)
+                    tensor_data = tensor.numpy()
 
                 # Apply quantization if specified
                 if quantization_type:
