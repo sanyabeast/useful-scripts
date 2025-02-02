@@ -9,12 +9,17 @@ def load_config(file_path):
         return yaml.safe_load(file)
 
 def move_shortcuts_to_temp(input_menus, temp_folder):
-    """Move all shortcuts from input menus to the temporary folder."""
+    """Move all shortcuts from input menus to the temporary folder, ignoring the Startup folder."""
     if not os.path.exists(temp_folder):
         os.makedirs(temp_folder)
 
     for menu in input_menus:
         for root, _, files in os.walk(menu):
+            # Fully ignore paths containing "Startup"
+            if "Startup" in os.path.basename(root):
+                print(f"Skipping Startup folder: {root}")
+                continue
+
             for file in files:
                 if file.endswith(".lnk"):  # Only move shortcut files
                     source = os.path.join(root, file)
@@ -23,9 +28,13 @@ def move_shortcuts_to_temp(input_menus, temp_folder):
                     print(f"Moved: {source} -> {destination}")
 
 def remove_empty_folders(input_menus):
-    """Remove empty folders from the input menus."""
+    """Remove empty folders from the input menus, except Startup."""
     for menu in input_menus:
         for root, dirs, _ in os.walk(menu, topdown=False):
+            # Ignore Startup folder
+            if "Startup" in os.path.basename(root):
+                continue
+
             for dir in dirs:
                 dir_path = os.path.join(root, dir)
                 try:
@@ -47,20 +56,18 @@ def create_folders_and_organize(temp_folder, output_menu, folders, misc_folder):
     # Create folders listed in the config
     for folder_name, shortcuts in folders.items():
         folder_path = os.path.join(output_menu, folder_name)
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
+        os.makedirs(folder_path, exist_ok=True)
 
         for shortcut_name in shortcuts:
             shortcut_file = shortcut_name + ".lnk"
             shortcut_path = os.path.join(temp_folder, shortcut_file)
             if os.path.exists(shortcut_path):
-                shutil.move(shortcut_path, folder_path)
-                print(f"Organized: {shortcut_file} -> {folder_path}")
+                shutil.copy(shortcut_path, folder_path)  # Copy instead of move
+                print(f"Copied: {shortcut_file} -> {folder_path}")
 
     # Create the misc folder for unlisted shortcuts
     misc_folder_path = os.path.join(output_menu, misc_folder)
-    if not os.path.exists(misc_folder_path):
-        os.makedirs(misc_folder_path)
+    os.makedirs(misc_folder_path, exist_ok=True)
 
     # Move remaining shortcuts to the misc folder
     for file in os.listdir(temp_folder):
