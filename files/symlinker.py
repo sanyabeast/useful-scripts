@@ -6,10 +6,12 @@ config.yaml example
   match:
   - sd.1.5-*
   - sdxl.1.0-*
+  include_nested: false
 - source_dir: C:/ML/ComfyUI_windows_portable/ComfyUI/models/vae
   target_dir: C:/ML/a1111/models/VAE
   match:
   - "*"
+  include_nested: true
 
 """
 
@@ -42,6 +44,7 @@ def create_symlinks(config_path):
         source_dir = os.path.abspath(entry['source_dir'])
         target_dir = os.path.abspath(entry['target_dir'])
         patterns = entry['match']
+        include_nested = entry.get('include_nested', False)
         
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
@@ -50,7 +53,10 @@ def create_symlinks(config_path):
         remove_invalid_symlinks(target_dir)
         
         for pattern in patterns:
-            matched_files = glob.glob(os.path.join(source_dir, pattern))
+            if include_nested:
+                matched_files = glob.glob(os.path.join(source_dir, '**', pattern), recursive=True)
+            else:
+                matched_files = glob.glob(os.path.join(source_dir, pattern))
             
             for file_path in matched_files:
                 file_name = os.path.basename(file_path)
