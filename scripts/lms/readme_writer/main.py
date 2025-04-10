@@ -4,8 +4,7 @@ Usage:
     python describe_scripts_with_llm.py --input-folder "path/to/scripts" --output-folder "path/to/output" --model "gemma-3-4b-it"
 
 This script recursively processes script files from the input folder and uses an LLM to generate
-a short description of each file. It creates a README Markdown file for each script in a mirrored
-subdirectory structure in the output folder.
+a detailed README for each one. It mirrors the input folder structure in the output directory.
 """
 
 import argparse
@@ -24,12 +23,11 @@ def is_script_file(path: Path):
 def generate_markdown(script_path: Path, description: str) -> str:
     return f"""# {script_path.name}
 
-**Description:**  
 {description.strip()}
 """
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate README files for script files using an LLM.")
+    parser = argparse.ArgumentParser(description="Generate detailed README files for script files using an LLM.")
     parser.add_argument("--input-folder", required=True, help="Path to the folder containing scripts")
     parser.add_argument("--output-folder", required=True, help="Path to the output folder")
     parser.add_argument("--model", required=True, help="LLM model name to use")
@@ -61,15 +59,25 @@ def main():
             print(f"🔄 [{idx}/{total_scripts}] Processing: {script_path}")
 
             script_text = script_path.read_text(encoding='utf-8', errors='ignore')
+            script_name = script_path.name
+
             chat = lms.Chat()
 
             chat.add_user_message(f"""
-This is the content of a script file. Please write a concise, clear description of what this script does.
+You are a senior software engineer reviewing the script named "{script_name}". Your task is to generate a **comprehensive and well-structured README** for this file.
 
-Respond with a JSON object like:
-{{"description": "..."}}
+Please include the following:
+- An overview of what the script does.
+- A breakdown of the main components or logic.
+- Any assumptions, requirements, or limitations.
+- Example use cases, if relevant.
+- Anything else a developer or user might want to know.
+- Usage examples
 
-Avoid guessing if the script is too short or unclear. Just describe what can be seen.
+Here is the script content:
+`
+{script_text}
+`
 """)
             chat.add_user_message(script_text)
 
