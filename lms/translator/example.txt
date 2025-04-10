@@ -1,0 +1,1 @@
+python lm_translate.py --language "Ukrainian" --model "gemma-3-12b-it" --input input.yaml --glossary glossary.yaml  --tokens tokens.yaml --output output.yaml --context "tes 4, oblivion"

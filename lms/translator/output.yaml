@@ -1,0 +1,109 @@
+- original: A resident of Split has told me I should speak to Horkvir Bear-Arm to
+    help solve the problem of all the doubles in this town. There are two Horkvir
+    Bear-Arms in town, so I can speak to either one.
+  special_tokens: []
+  translation: Житель Розколу розповів мені, що я повинен поговорити з Хорків Ведмежа
+    Лапа, щоб допомогти вирішити проблему з усіма подвійниками в цьому місті. У місті
+    двоє Хорків Ведмежа Лапа, тому я можу поговорити з будь-ким із них.
+- original: Because Bolwing is dead, I have no way to get more information about the
+    Fork of Horripilation. Maybe I'll get lucky and find it during my travels in the
+    Shivering Isles. Sadly, that is the best the I can hope for now.
+  special_tokens: []
+  translation: Оскільки Болвінг помер, я не маю способу отримати більше інформації
+    про Віделка Дебеління. Можливо, мені пощастить і я знайду його під час своїх подорожей
+    у Тремтячі Острови. На жаль, це найкраща надія, яка в мене є зараз.
+- original: Big-Head has asked {PLAYER} to find the Fork of Horripilation. It's obviously
+    important to him, and he has offered me a reward for its return. Big-Head has
+    given me a charm that should allow me to speak with the beggar Bolwing.
+  special_tokens:
+  - '{''PLAYER'': None}'
+  - Віделка Дебеління
+  - чари
+  - жебрак
+  - Велика Башка
+  translation: Велика Башка попросив {PLAYER} знайти Віделку Дебеління. Очевидно,
+    це дуже важливо для нього, і він запропонував мені винагороду за її повернення.
+    Велика Башка дав мені чари, які дозволять мені поговорити з жебраком Болвінгом.
+- original: I've spoken to the beggar Bolwing. He tells me that the Fork of Horripilation
+    is being fought over by groups of Heretics and Zealots. I'll have to get it from
+    them.
+  special_tokens: []
+  translation: Я поговорив з жебраком Болвінгом. Він каже мені, що Віделка Дебеління
+    контролюється групами Єретиків та Запеклих. Мені доведеться взяти її у них.
+- original: 'Ahjazda believes the world is ending soon, so she''s gathering supplies.
+    She would like me to find three items she''s still missing: the Amulet of Disintegration,
+    the Ring of Desiccation, and the Calming Pants.'
+  special_tokens: []
+  translation: 'Ахіязда вірить, що світ скоро закінчиться, тому вона збирає припаси.
+    Вона хоче, щоб я знайшов три речі, яких їй все ще не вистачає: Амулет Розкладання,
+    Перстень Висушування та Спокійні Штани.'
+- original: There is a chamber in Knifepoint Hollow that has been sealed for millennia.
+    Few but Sheogorath knows who or what is imprisoned there.
+  special_tokens: []
+  translation: У Глибині Вістря Ножа є кімната, яка була запечатана на тисячоліття.
+    Мало хто, крім Шеоґората, знає, хто чи що там ув’язнено.
+- original: Once a bustling city, Xeddefen has become home to a tribe of Grummites
+    who worship the strange obelisk in the depths of the ruins.
+  special_tokens: []
+  translation: Колись жваве місто, Кседдефен став домівкою для племені Грумітів, які
+    поклоняються дивовижному обеліску в глибинах руїн.
+- original: The Gardens of Flesh and Bone were created by sorceress Relmyna Verenim
+    as her attempt to grow the mystical components of the "sixth element," Flesh.
+  special_tokens: []
+  translation: Сади Плоті так Кістки були створені чарівницею Релміною Веринім як
+    її спроба виростити містичні компоненти «шостого елементу», Плоті.
+- original: Nelrene has denied involvement in any sort of conspiracy. I'll need to
+    be more persuasive with her, or find direct evidence she's involved.
+  special_tokens: []
+  translation: Нельрен заперечила свою причетність до будь-якої змови. Мені потрібно
+    буде переконати її більше, або знайти прямі докази її причетності.
+- original: Ma'zaddha admitted to being involved in a plot to kill Lady Syl. He's
+    asked for time to learn more about who's behind it. I should meet him at his house
+    in one day's time. In the meantime, I should investigate Nelrene's role in this.
+  special_tokens: []
+  translation: Ма’задда зізнався, що був причетний до змови з метою вбивства леді
+    Сіль. Він попросив часу, щоб дізнатися більше про те, хто за цим стоїть. Я повинен
+    зустрітися з ним у його будинку через один день. Тим часом я маю розслідувати
+    роль Нельрене в цьому.
+- original: Anya Herrick has named Ma'zaddha as being involved in some sort of plot
+    against Lady Syl. I should find and speak to him.
+  special_tokens: []
+  translation: Аня Геррік назвала Ма’задду залученим до якоїсь змови проти леді Сіль.
+    Я повинен знайти його та поговорити з ним.
+- original: I have been tasked with finding the people conspiring against Lady Syl.
+    I need to find and speak to Herdir. He can always be found at the torture chamber
+    in the House of Dementia.
+  special_tokens: []
+  translation: Мені доручено знайти людей, які змовились проти леді Сіль. Мені потрібно
+    знайти та поговорити з Гедріром. Його завжди можна знайти в тортурній камері у
+    Будинку Божевілля.
+- original: Staada thanked me for helping the Golden Saints secure their stronghold,
+    and has given me the ability to summon her kind. She has also given me a set of
+    matching armor.
+  special_tokens: []
+  translation: Стаада подякувала мені за допомогу Золотим Святим у захисті їхньої
+    твердині, і наділила мене здатністю скликати її вид. Вона також дала мені комплект
+    відповідних обладунків.
+- original: Ra'kheran's betrayal of Ciirta has been successful. Now that she is dead,
+    taking her eye should be a simple matter.
+  special_tokens: []
+  translation: Зрада Ра’кхерана щодо Цірти була успішною. Тепер, коли вона мертва,
+    забрати її око має бути простою справою.
+- original: The Wellspring of the Mazken has been restored. I need to help Dylora
+    defeat the remnants of the forces of Order.
+  special_tokens: []
+  translation: Джерело Мазкенів відновлено. Мені потрібно допомогти Ділорзі перемогти
+    залишки сил Порядку.
+- original: Nice work! Take these $AMOUNT of golden coins
+  special_tokens:
+  - $AMOUNT
+  translation: Чудова робота! Візьми ці $AMOUNT золотих монет.
+- original: You need to accomplish {QUEST_NAME} before proceed
+  special_tokens:
+  - '{QUEST_NAME}'
+  - '[''ICON_NAME'']'
+  - '%s'
+  - $AMOUNT
+  - <b>Text</b>
+  - '{''PLAYER'': None}'
+  translation: Вам потрібно виконати {QUEST_NAME} перед продовженням.
