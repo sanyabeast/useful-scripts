@@ -119,7 +119,6 @@ def main():
         print(f"ℹ️ Threshold set to {args.threshold}: Files with descriptiveness scores above this will keep their names")
 
     success_count = 0
-    skip_count = 0
     error_count = 0
     kept_count = 0
 
@@ -220,7 +219,6 @@ def main():
     print(f"📊 Summary:")
     print(f"  ✨ Successfully renamed: {success_count}")
     print(f"  🔒 Kept original name: {kept_count}")
-    print(f"  ⏭️ Skipped (already exists): {skip_count}")
     print(f"  ❌ Errors: {error_count}")
     print(f"🎉 All done!")
 
