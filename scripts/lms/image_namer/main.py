@@ -2,12 +2,12 @@
 """
 Usage:
     python rename_images_with_llm.py --folder "H:/Pictures" --model "gemma-3-4b-it"
-        [--min-length 32] [--max-length 128] [--recursive] [--force] [--threshold 0.5]
+        [--min-length 32] [--max-length 128] [--recursive] [--force] [--threshold 0.4]
 
 This script walks through the given folder and renames each image file
 based on a filename suggested by an LLM. When --recursive is specified, it will
 include nested folders. The LLM rates the current filename's descriptiveness (0-1),
-and files with scores above the threshold (default: 0.5) keep their names.
+and files with scores above the threshold (default: 0.4) keep their names.
 Use --force to rename all files regardless of their current name quality.
 It skips files if the new name already exists, preserves the original file extension,
 and logs progress to the console.
@@ -33,6 +33,18 @@ def is_image_file(file_path):
     return mime is not None and mime.startswith("image")
 
 
+def to_snake_case(filename):
+    """Convert a filename to snake_case format."""
+    # Replace hyphens with underscores
+    filename = filename.replace('-', '_')
+    # Replace spaces with underscores
+    filename = filename.replace(' ', '_')
+    # Replace multiple underscores with a single one
+    while '__' in filename:
+        filename = filename.replace('__', '_')
+    return filename
+
+
 def signal_handler(sig, frame):
     print("\n\n⚠️ Ctrl+C detected. Exiting gracefully...")
     print("👋 Goodbye!")
@@ -50,7 +62,7 @@ def main():
     parser.add_argument("--max-length", type=int, default=128, help="Maximum filename length (default: 64)")
     parser.add_argument("--recursive", action="store_true", help="Include nested folders in the search")
     parser.add_argument("--force", action="store_true", help="Force renaming all files regardless of LLM's assessment")
-    parser.add_argument("--threshold", type=float, default=0.5, help="Threshold for keeping original filename (0-1, default: 0.5)")
+    parser.add_argument("--threshold", type=float, default=0.4, help="Threshold for keeping original filename (0-1, default: 0.4)")
     args = parser.parse_args()
 
     folder = Path(args.folder)
@@ -129,6 +141,8 @@ Return the suggested_filename, current_name_descriptiveness, and suggested_name_
 
             # Trim result to max length and clean formatting
             new_filename_base = prediction.parsed["suggested_filename"].strip()[:args.max_length]
+            # Convert to snake_case
+            new_filename_base = to_snake_case(new_filename_base)
             new_filename = new_filename_base + image_path.suffix.lower()
             new_filepath = image_path.with_name(new_filename)
             
@@ -151,7 +165,7 @@ Return the suggested_filename, current_name_descriptiveness, and suggested_name_
 
             print(f"  ✏️ Renaming file...")
             image_path.rename(new_filepath)
-            print(f"🔄 [{idx}/{total_images}] Renamed to: {new_filename} (old: {descriptiveness:.2f} → new: {suggested_descriptiveness:.2f})\n")
+            print(f"✨ [{idx}/{total_images}] Renamed to: {new_filename} (old: {descriptiveness:.2f} → new: {suggested_descriptiveness:.2f})\n")
             success_count += 1
 
         except Exception as e:
@@ -159,7 +173,7 @@ Return the suggested_filename, current_name_descriptiveness, and suggested_name_
             error_count += 1
 
     print(f"📊 Summary:")
-    print(f"  🔄 Successfully renamed: {success_count}")
+    print(f"  ✨ Successfully renamed: {success_count}")
     print(f"  🔒 Kept original name: {kept_count}")
     print(f"  ⏭️ Skipped (already exists): {skip_count}")
     print(f"  ❌ Errors: {error_count}")
