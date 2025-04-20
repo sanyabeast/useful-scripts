@@ -111,29 +111,44 @@ def main():
             chat = lms.Chat()
 
             prompt = f"""
-Describe this image and suggest a filename for it.
-The current filename is: "{current_filename}"
+                You are a **naming expert AI** designed to generate **highly descriptive, vivid, and semantically rich** filenames based on image content.
 
-First, carefully analyze if the current filename is already descriptive and appropriate:
-1. Does it accurately describe what's in the image?
-2. Is it using appropriate snake_case format?
-3. Is it descriptive enough without being excessively long?
+                Current filename: "{current_filename}"
 
-Generate a filename using lowercase snake_case format, with a minimum length of {args.min_length} characters and a maximum of {args.max_length} characters.
-Do not include the file extension in the filename.
-Do not use personal names.
+                ---
 
-Also, rate the descriptiveness of the current filename on a scale from 0.0 to 1.0:
-- 0.0: Not descriptive at all (e.g., "IMG_1234", "DSC00001")
-- 0.3: Somewhat descriptive but missing key elements
-- 0.5: Moderately descriptive, captures basic content
-- 0.7: Good description, captures most important elements
-- 1.0: Excellent description, accurately captures all important elements
+                ## Task:
+                1. Carefully examine the visual contents of the image.
+                2. Rate the quality of the current filename (from 0.0 to 1.0) based on:
+                - Does it accurately and vividly describe the image?
+                - Does it follow lowercase `snake_case` format?
+                - Is it unique, unambiguous, and avoids generic names like `image_001`, `photo1`, etc.?
+                - Does it reflect the subject, mood, setting, or composition?
 
-Additionally, rate your suggested filename on the same scale from 0.0 to 1.0.
+                3. If the current name is not vivid or descriptive, **generate a better one**:
+                - Use **lowercase snake_case**
+                - No file extensions
+                - Avoid generic terms like “image”, “photo”, “picture”
+                - Avoid personal names (e.g., “john”, “emily”)
+                - Avoid camera terminology or timestamps
+                - Avoid overly poetic or abstract words unless the image clearly reflects them
+                - Be visually concrete, e.g. "foggy_forest_cabin" or "red_cat_on_balcony"
+                - Use **3–6 descriptive words** max (joined by `_`)
+                - Filename length: {args.min_length} to {args.max_length} characters
 
-Return the suggested_filename, current_name_descriptiveness, and suggested_name_descriptiveness fields.
-"""
+                4. Provide:
+                - `suggested_filename` (snake_case, without extension)
+                - `current_name_descriptiveness` (0.0 to 1.0)
+                - `suggested_name_descriptiveness` (0.0 to 1.0)
+
+                Only respond in this exact JSON format:
+                ```json
+                {{
+                "suggested_filename": "...",
+                "current_name_descriptiveness": ...,
+                "suggested_name_descriptiveness": ...
+                }}
+            """
 
             chat.add_user_message(prompt, images=[image_handle])
             print(f"  💭 Generating filename suggestion...")
