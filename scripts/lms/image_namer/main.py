@@ -25,6 +25,7 @@ import sys
 class ImageDescription(BaseModel):
     suggested_filename: str
     current_name_descriptiveness: float
+    suggested_name_descriptiveness: float
 
 
 def is_image_file(file_path):
@@ -117,7 +118,9 @@ Also, rate the descriptiveness of the current filename on a scale from 0.0 to 1.
 - 0.7: Good description, captures most important elements
 - 1.0: Excellent description, accurately captures all important elements
 
-Return both the suggested_filename and current_name_descriptiveness fields.
+Additionally, rate your suggested filename on the same scale from 0.0 to 1.0.
+
+Return the suggested_filename, current_name_descriptiveness, and suggested_name_descriptiveness fields.
 """
 
             chat.add_user_message(prompt, images=[image_handle])
@@ -131,6 +134,7 @@ Return both the suggested_filename and current_name_descriptiveness fields.
             
             # Get the descriptiveness score of the current filename
             descriptiveness = prediction.parsed["current_name_descriptiveness"]
+            suggested_descriptiveness = prediction.parsed["suggested_name_descriptiveness"]
             
             # Decide whether to rename based on descriptiveness and force flag
             should_rename = args.force or descriptiveness < args.threshold
@@ -147,7 +151,7 @@ Return both the suggested_filename and current_name_descriptiveness fields.
 
             print(f"  ✏️ Renaming file...")
             image_path.rename(new_filepath)
-            print(f"🔄 [{idx}/{total_images}] Renamed to: {new_filename} (old name score: {descriptiveness:.2f})\n")
+            print(f"🔄 [{idx}/{total_images}] Renamed to: {new_filename} (old: {descriptiveness:.2f} → new: {suggested_descriptiveness:.2f})\n")
             success_count += 1
 
         except Exception as e:
