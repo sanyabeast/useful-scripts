@@ -3,14 +3,18 @@
 Usage:
     python rename_images_with_llm.py --folder "H:/Pictures" --model "gemma-3-4b-it"
         [--min-length 32] [--max-length 128] [--recursive] [--force] [--threshold 0.4]
+    
+    # Or process a single file:
+    python rename_images_with_llm.py --file "H:/Pictures/image.jpg" --model "gemma-3-4b-it"
+        [--min-length 32] [--max-length 128] [--force] [--threshold 0.4]
 
-This script walks through the given folder and renames each image file
-based on a filename suggested by an LLM. When --recursive is specified, it will
-include nested folders. The LLM rates the current filename's descriptiveness (0-1),
-and files with scores above the threshold (default: 0.4) keep their names.
+This script renames image files based on filenames suggested by an LLM.
+It can process either a single file (--file) or a folder of images (--folder).
+When --recursive is specified with --folder, it will include nested folders.
+The LLM rates the current filename's descriptiveness (0-1), and files with 
+scores above the threshold (default: 0.4) keep their names.
 Use --force to rename all files regardless of their current name quality.
-It skips files if the new name already exists, preserves the original file extension,
-and logs progress to the console.
+If the new name already exists, a numeric postfix (e.g., _2, _3) is added.
 """
 
 import argparse
@@ -55,34 +59,52 @@ def main():
     # Set up signal handler for graceful exit on Ctrl+C
     signal.signal(signal.SIGINT, signal_handler)
     
-    parser = argparse.ArgumentParser(description="Rename images in a folder using LLM-generated filenames.")
-    parser.add_argument("--folder", required=True, help="Path to the folder containing images")
+    parser = argparse.ArgumentParser(description="Rename images using LLM-generated filenames.")
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--folder", help="Path to the folder containing images")
+    input_group.add_argument("--file", help="Path to a single image file to rename")
     parser.add_argument("--model", required=True, help="Model name to use for filename generation")
     parser.add_argument("--min-length", type=int, default=32, help="Minimum filename length (default: 32)")
     parser.add_argument("--max-length", type=int, default=128, help="Maximum filename length (default: 64)")
-    parser.add_argument("--recursive", action="store_true", help="Include nested folders in the search")
+    parser.add_argument("--recursive", action="store_true", help="Include nested folders when using --folder")
     parser.add_argument("--force", action="store_true", help="Force renaming all files regardless of LLM's assessment")
     parser.add_argument("--threshold", type=float, default=0.4, help="Threshold for keeping original filename (0-1, default: 0.4)")
     args = parser.parse_args()
-
-    folder = Path(args.folder)
-    if not folder.exists() or not folder.is_dir():
-        print("❌ Error: Provided folder does not exist or is not a directory.")
-        return
 
     print(f"🤖 Loading model: {args.model}...")
     model = lms.llm(args.model)
     print(f"✅ Model loaded successfully!")
     
-    print(f"📂 Scanning folder: {folder.resolve()}")
-
-    # Use glob or rglob based on the recursive flag
-    if args.recursive:
-        print(f"🔍 Searching recursively through all nested folders")
-        image_files = [f for f in folder.rglob("*") if f.is_file() and is_image_file(f)]
-    else:
-        print(f"🔍 Searching only in the top-level folder")
-        image_files = [f for f in folder.glob("*") if f.is_file() and is_image_file(f)]
+    # Collect image files based on whether --folder or --file was specified
+    image_files = []
+    
+    if args.folder:
+        folder = Path(args.folder)
+        if not folder.exists() or not folder.is_dir():
+            print("❌ Error: Provided folder does not exist or is not a directory.")
+            return
+            
+        print(f"📂 Scanning folder: {folder.resolve()}")
+        
+        # Use glob or rglob based on the recursive flag
+        if args.recursive:
+            print(f"🔍 Searching recursively through all nested folders")
+            image_files = [f for f in folder.rglob("*") if f.is_file() and is_image_file(f)]
+        else:
+            print(f"🔍 Searching only in the top-level folder")
+            image_files = [f for f in folder.glob("*") if f.is_file() and is_image_file(f)]
+    else:  # args.file
+        file_path = Path(args.file)
+        if not file_path.exists() or not file_path.is_file():
+            print("❌ Error: Provided file does not exist or is not a file.")
+            return
+            
+        if not is_image_file(file_path):
+            print("❌ Error: Provided file is not a recognized image format.")
+            return
+            
+        print(f"🖼️ Processing single file: {file_path.resolve()}")
+        image_files = [file_path]
     
     total_images = len(image_files)
 
@@ -128,8 +150,8 @@ def main():
                 3. If the current name is not vivid or descriptive, **generate a better one**:
                 - Use **lowercase snake_case**
                 - No file extensions
-                - Avoid generic terms like “image”, “photo”, “picture”
-                - Avoid personal names (e.g., “john”, “emily”)
+                - Avoid generic terms like "image", "photo", "picture"
+                - Avoid personal names (e.g., "john", "emily")
                 - Avoid camera terminology or timestamps
                 - Avoid overly poetic or abstract words unless the image clearly reflects them
                 - Be visually concrete, e.g. "foggy_forest_cabin" or "red_cat_on_balcony"
@@ -173,10 +195,18 @@ def main():
                 kept_count += 1
                 continue
 
+            # Handle case when the new filename already exists by adding a numeric postfix
             if new_filepath.exists():
-                print(f"⏭️ [{idx}/{total_images}] Skipped: {new_filename} already exists.\n")
-                skip_count += 1
-                continue
+                counter = 2
+                while True:
+                    postfix_filename = f"{new_filename_base}_{counter}{image_path.suffix.lower()}"
+                    postfix_filepath = image_path.with_name(postfix_filename)
+                    if not postfix_filepath.exists():
+                        new_filename = postfix_filename
+                        new_filepath = postfix_filepath
+                        break
+                    counter += 1
+                print(f"  ⚠️ Original target filename already exists, using {new_filename} instead")
 
             print(f"  ✏️ Renaming file...")
             image_path.rename(new_filepath)
