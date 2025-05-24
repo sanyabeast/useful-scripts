@@ -43,6 +43,14 @@ set /p prompt=Enter prompt context for LLM (optional):
 set prompt_flag=
 if not "!prompt!"=="" set prompt_flag=--prompt "!prompt!"
 
+set /p resolutions=Enter resolutions (space-separated, default: "512 768 1024"): 
+set resolution_flag=
+if "!resolutions!"=="" (
+    set resolution_flag=--resolution "512 768 1024"
+) else (
+    set resolution_flag=--resolution "!resolutions!"
+)
+
 echo.
 echo ========================================================
 echo Running with the following parameters:
@@ -55,6 +63,11 @@ echo Padding: !padding!
 echo Include subfolders: !recursive!
 if not "!prefix!"=="" echo Prefix: !prefix!
 if not "!prompt!"=="" echo Prompt context: !prompt!
+if "!resolutions!"=="" (
+    echo Resolutions: 512 768 1024
+) else (
+    echo Resolutions: !resolutions!
+)
 echo ========================================================
 echo.
 
@@ -67,7 +80,7 @@ echo Running script...
 echo.
 
 REM Run the script with all parameters
-python main.py -i "!input_folder!" -o "!output_folder!" -m "!model!" --start-index !start_index! --padding !padding! !recursive_flag! !prefix_flag! !prompt_flag!
+python main.py -i "!input_folder!" -o "!output_folder!" -m "!model!" --start-index !start_index! --padding !padding! !recursive_flag! !prefix_flag! !prompt_flag! !resolution_flag!
 
 :end
 echo.

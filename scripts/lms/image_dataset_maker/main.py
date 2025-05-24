@@ -2,7 +2,7 @@
 """
 Usage:
     python main.py --input-folder "path/to/images" --output-folder "path/to/output" --model "gemma-3-4b-it-qat"
-        [--start-index 1] [--padding 4] [--recursive] [--prefix "text"] [--prompt "context"]
+        [--start-index 1] [--padding 4] [--recursive] [--prefix "text"] [--prompt "context"] [--resolution "512 768 1024"]
 
 This script processes a folder of images to create a dataset by:
 1. Renaming images to sequential numbers (0001.jpg, 0002.jpg, etc.)
@@ -18,6 +18,7 @@ Options:
     --recursive: Include images in subfolders of the input folder
     --prefix: Text to add at the beginning of each description
     --prompt: Additional context to guide the LLM (e.g., "images in John Blueberry art style")
+    --resolution: Space-separated list of height resolutions (default: "512 768 1024")
 """
 
 import argparse
@@ -41,17 +42,26 @@ def is_image_file(file_path):
     return mime is not None and mime.startswith("image")
 
 
-def convert_to_jpg(image_path, output_path):
-    """Convert any image format to JPEG and save to the output path."""
+def convert_to_jpg(image_path, output_path, height=None):
+    """Convert any image format to JPEG and save to the output path with optional resizing."""
     try:
         with Image.open(image_path) as img:
             # Convert to RGB mode if necessary (for PNG with transparency)
             if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 background.paste(img, mask=img.split()[3] if img.mode == 'RGBA' else None)
-                background.save(output_path, 'JPEG', quality=95)
+                img = background
             else:
-                img.convert('RGB').save(output_path, 'JPEG', quality=95)
+                img = img.convert('RGB')
+                
+            # Resize if height is specified
+            if height:
+                # Calculate new width to maintain aspect ratio
+                aspect_ratio = img.width / img.height
+                new_width = int(height * aspect_ratio)
+                img = img.resize((new_width, height), Image.LANCZOS)
+                
+            img.save(output_path, 'JPEG', quality=95)
         return True
     except Exception as e:
         print(f"❌ Error converting image {image_path}: {e}")
@@ -135,6 +145,7 @@ def main():
     parser.add_argument("-r", "--recursive", action="store_true", help="Include images in subfolders")
     parser.add_argument("--prefix", help="Text to add at the beginning of each description")
     parser.add_argument("--prompt", help="Additional context to guide the LLM (e.g., \"images in John Blueberry art style\")")
+    parser.add_argument("--resolution", default="512 768 1024", help="Space-separated list of height resolutions (default: \"512 768 1024\")")
     args = parser.parse_args()
     
     input_folder = Path(args.input_folder)
@@ -176,6 +187,18 @@ def main():
     
     print(f"🖼️ Found {total_images} image(s). Starting processing...\n")
     
+    # Parse resolutions
+    resolutions = [int(res.strip()) for res in args.resolution.split()]
+    print(f"📷 Using resolutions: {resolutions}")
+    
+    # Create subdirectories for each resolution
+    resolution_dirs = {}
+    for res in resolutions:
+        res_dir = output_folder / str(res)
+        res_dir.mkdir(parents=True, exist_ok=True)
+        resolution_dirs[res] = res_dir
+        print(f"  📂 Created directory for resolution {res}: {res_dir}")
+    
     # Process each image
     success_count = 0
     error_count = 0
@@ -184,24 +207,10 @@ def main():
         try:
             # Create the new filename with padding
             new_filename = str(idx).zfill(args.padding)
-            new_image_path = output_folder / f"{new_filename}.jpg"
-            new_text_path = output_folder / f"{new_filename}.txt"
             
             print(f"🔄 [{idx-args.start_index+1}/{total_images}] Processing: {image_path.name}")
             
-            # Convert/copy the image to the output folder
-            print(f"  📷 Converting/copying image to {new_image_path.name}")
-            if image_path.suffix.lower() in [".jpg", ".jpeg"]:
-                # Just copy if it's already a JPEG
-                shutil.copy2(image_path, new_image_path)
-            else:
-                # Convert to JPEG if it's another format
-                if not convert_to_jpg(image_path, new_image_path):
-                    print(f"  ⚠️ Failed to convert {image_path.name}, skipping")
-                    error_count += 1
-                    continue
-            
-            # Generate description and save to text file
+            # Generate description first (do this only once per image)
             print(f"  📝 Generating description...")
             description = generate_image_description(image_path, model, args.prompt)
             
@@ -209,10 +218,23 @@ def main():
             if args.prefix:
                 description = f"{args.prefix} {description}"
             
-            with open(new_text_path, "w", encoding="utf-8") as f:
-                f.write(description)
+            # Process for each resolution
+            for res in resolutions:
+                res_dir = resolution_dirs[res]
+                new_image_path = res_dir / f"{new_filename}.jpg"
+                new_text_path = res_dir / f"{new_filename}.txt"
+                
+                # Convert/resize the image to the output folder
+                print(f"  📷 Converting to {res}px height: {new_image_path.name}")
+                if not convert_to_jpg(image_path, new_image_path, height=res):
+                    print(f"  ⚠️ Failed to convert {image_path.name} to {res}px, skipping")
+                    continue
+                
+                # Save the description to a text file
+                with open(new_text_path, "w", encoding="utf-8") as f:
+                    f.write(description)
             
-            print(f"  ✅ Successfully processed {image_path.name} -> {new_image_path.name}")
+            print(f"  ✅ Successfully processed {image_path.name} to all resolutions")
             success_count += 1
             
         except Exception as e:
