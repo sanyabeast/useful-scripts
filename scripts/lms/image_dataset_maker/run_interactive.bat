@@ -6,8 +6,18 @@ echo Image Dataset Maker - Interactive Mode
 echo ========================================================
 echo.
 
+REM Check if a folder was dropped onto the batch file
+set "drag_drop_folder=%~1"
+
 REM Ask for required parameters
-set /p input_folder=Enter input folder path: 
+if not "!drag_drop_folder!"=="" (
+    echo Detected drag-and-drop folder: !drag_drop_folder!
+    set "input_folder=!drag_drop_folder!"
+    echo.
+) else (
+    set /p input_folder=Enter input folder path: 
+)
+
 set /p output_folder=Enter output folder path: 
 
 REM Check if required parameters are provided
