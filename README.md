@@ -7,22 +7,22 @@ A versatile collection of utility scripts for everyday tasks including image pro
 ```
 useful-scripts/
 ├── scripts/
-│   ├── android/        # Android-specific utilities
-│   ├── audio/          # Audio file manipulation and playlist creation
-│   ├── chatworks/      # Chat and messaging related tools
-│   ├── chrome_extensions/ # Chrome browser extension utilities
-│   ├── files/          # File management and organization scripts
-│   ├── folders/        # Directory management utilities
-│   ├── images/         # Image processing, conversion and manipulation
-│   ├── lms/            # Language model service tools including dataset creation
-│   ├── macos/          # macOS specific utilities
-│   ├── ml/             # Machine learning utilities
-│   ├── night_shift/    # Night mode and display adjustment tools
-│   ├── videos/         # Video processing utilities
-│   ├── web_misc/       # Miscellaneous web tools
-│   ├── web_userscripts/ # Browser userscripts
-│   └── windows/        # Windows OS specific utilities
-└── docs/               # Documentation
+│   ├── android/            # Android-specific utilities
+│   ├── audio/              # Audio file manipulation and playlist creation
+│   ├── chatworks/          # Chat and messaging related tools
+│   ├── chrome_extensions/  # Chrome browser extension utilities
+│   ├── files/              # File management and organization scripts
+│   ├── folders/            # Directory management utilities
+│   ├── images/             # Image processing, conversion and manipulation
+│   ├── lms/                # LM Studio tools including dataset creation
+│   ├── macos/              # macOS specific utilities
+│   ├── ml/                 # Machine learning utilities
+│   ├── night_shift/        # Night mode and display adjustment tools
+│   ├── videos/             # Video processing utilities
+│   ├── web_misc/           # Miscellaneous web tools
+│   ├── web_userscripts/    # Browser userscripts
+│   └── windows/            # Windows OS specific utilities
+└── docs/                   # Documentation
 ```
 
 ## 🌟 Featured Scripts
