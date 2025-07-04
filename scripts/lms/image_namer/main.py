@@ -22,6 +22,7 @@ from pathlib import Path
 import lmstudio as lms
 from pydantic import BaseModel
 import mimetypes
+from PIL import Image, PngImagePlugin
 import signal
 import sys
 
@@ -35,6 +36,49 @@ class ImageDescription(BaseModel):
 def is_image_file(file_path):
     mime, _ = mimetypes.guess_type(file_path)
     return mime is not None and mime.startswith("image")
+
+
+def get_processed_name(image_path: Path):
+    """Return stored filename from image metadata if present."""
+    try:
+        with Image.open(image_path) as img:
+            fmt = img.format
+            if fmt == 'JPEG':
+                exif = img.getexif()
+                # 270 = ImageDescription, 37510 = UserComment
+                for tag in (270, 37510):
+                    if tag in exif and exif[tag]:
+                        return str(exif[tag]).strip()
+            elif fmt == 'PNG':
+                # Pillow stores textual chunks in img.info
+                for key in ('Description', 'ImageDescription'):
+                    if key in img.info and img.info[key]:
+                        return str(img.info[key]).strip()
+    except Exception:
+        # Ignore any failures reading metadata
+        pass
+    return None
+
+
+def store_processed_name(image_path: Path, name: str):
+    """Write the processed filename into image metadata so we can detect it later."""
+    try:
+        with Image.open(image_path) as img:
+            fmt = img.format
+            if fmt == 'JPEG':
+                exif = img.getexif()
+                exif[270] = name  # ImageDescription
+                img.save(image_path, exif=exif)
+            elif fmt == 'PNG':
+                # Copy existing text attributes
+                meta = PngImagePlugin.PngInfo()
+                for k, v in img.info.items():
+                    if isinstance(v, str):
+                        meta.add_text(k, v)
+                meta.add_text("Description", name)
+                img.save(image_path, pnginfo=meta)
+    except Exception as e:
+        print(f"  ⚠️ Could not write metadata for {image_path.name}: {e}")
 
 
 def to_snake_case(filename):
@@ -126,6 +170,14 @@ def main():
         try:
             current_filename = image_path.stem
             print(f"🔄 [{idx}/{total_images}] Processing: {image_path}")
+
+            # Skip if already processed and metadata matches current filename
+            if not args.force:
+                stored_name = get_processed_name(image_path)
+                if stored_name and stored_name == current_filename:
+                    print(f"⏭️ [{idx}/{total_images}] Already processed (metadata matches filename). Skipping.\n")
+                    kept_count += 1
+                    continue
             
             print(f"  📊 Analyzing image content...")
             image_handle = lms.prepare_image(str(image_path))
@@ -191,6 +243,8 @@ def main():
             
             if not should_rename:
                 print(f"🔒 [{idx}/{total_images}] Kept original name: Score {descriptiveness:.2f} > threshold {args.threshold:.2f}\n")
+                # Store metadata so we skip on future runs
+                store_processed_name(image_path, current_filename)
                 kept_count += 1
                 continue
 
@@ -209,6 +263,8 @@ def main():
 
             print(f"  ✏️ Renaming file...")
             image_path.rename(new_filepath)
+            # After renaming, store metadata so we can skip next time
+            store_processed_name(new_filepath, new_filename_base)
             print(f"✨ [{idx}/{total_images}] Renamed to: {new_filename} (old: {descriptiveness:.2f} → new: {suggested_descriptiveness:.2f})\n")
             success_count += 1
 
