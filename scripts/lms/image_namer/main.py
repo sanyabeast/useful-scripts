@@ -22,7 +22,7 @@ from pathlib import Path
 import lmstudio as lms
 from pydantic import BaseModel
 import mimetypes
-from PIL import Image, PngImagePlugin
+from PIL import Image, PngImagePlugin, ImageSequence
 import signal
 import sys
 
@@ -54,6 +54,12 @@ def get_processed_name(image_path: Path):
                 for key in ('Description', 'ImageDescription'):
                     if key in img.info and img.info[key]:
                         return str(img.info[key]).strip()
+            elif fmt == 'GIF':
+                if 'comment' in img.info and img.info['comment']:
+                    comment = img.info['comment']
+                    if isinstance(comment, bytes):
+                        return comment.decode('utf-8', errors='ignore').strip()
+                    return str(comment).strip()
     except Exception:
         # Ignore any failures reading metadata
         pass
@@ -77,6 +83,18 @@ def store_processed_name(image_path: Path, name: str):
                         meta.add_text(k, v)
                 meta.add_text("Description", name)
                 img.save(image_path, pnginfo=meta)
+            elif fmt == 'GIF':
+                # Handle animated GIFs by iterating through frames
+                frames = []
+                for frame in ImageSequence.Iterator(img):
+                    frames.append(frame.copy())
+                
+                # The info dict from the first frame contains global properties
+                info = frames[0].info.copy()
+                info['comment'] = name.encode('utf-8')
+
+                # Save the first frame, appending the rest
+                frames[0].save(image_path, save_all=True, append_images=frames[1:], **info)
     except Exception as e:
         print(f"  ⚠️ Could not write metadata for {image_path.name}: {e}")
 
