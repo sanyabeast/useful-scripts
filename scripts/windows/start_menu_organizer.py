@@ -82,13 +82,10 @@ def move_shortcuts_to_temp(input_menus, temp_folder):
                         destination = os.path.join(temp_folder, file)
                         
                         try:
-                            # Handle duplicate filenames
-                            counter = 1
-                            original_destination = destination
-                            while os.path.exists(destination):
-                                name, ext = os.path.splitext(original_destination)
-                                destination = f"{name}_{counter}{ext}"
-                                counter += 1
+                            # Overwrite duplicates since they're the same shortcuts from different locations
+                            if os.path.exists(destination):
+                                logger.info(f"Overwriting duplicate: {destination}")
+                                os.remove(destination)
                                 
                             shutil.move(source, destination)
                             logger.info(f"Moved: {source} -> {destination}")
