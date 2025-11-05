@@ -4,23 +4,29 @@ setlocal enabledelayedexpansion
 echo === Duplicate File Finder ===
 echo.
 
-REM Get the directory where the batch file is located
 set "script_dir=%~dp0"
 
-REM Check if a folder was dropped onto the batch file
-set "input_dir=%~1"
-if not "%input_dir%"=="" (
-    echo Detected dropped folder: %input_dir%
-    echo.
+set "input_dir1=%~1"
+set "input_dir2=%~2"
+
+if not "%input_dir1%"=="" (
+    if not "%input_dir2%"=="" (
+        echo Detected two folders for cross-folder comparison:
+        echo Folder 1: %input_dir1%
+        echo Folder 2: %input_dir2%
+        echo.
+        
+        python "%script_dir%dupe_finder.py" "%input_dir1%" "%input_dir2%"
+    ) else (
+        echo Detected single folder: %input_dir1%
+        echo.
+        
+        python "%script_dir%dupe_finder.py" "%input_dir1%"
+    )
     
-    REM Run the Python script with the full path to ensure it's found
-    python "%script_dir%dupe_finder.py" "%input_dir%"
-    
-    REM Keep the window open after execution
     echo.
     echo Press any key to exit...
     pause > nul
 ) else (
-    REM Run in fully interactive mode
     python "%script_dir%dupe_finder.py" --interactive
 )
