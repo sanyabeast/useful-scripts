@@ -14,9 +14,9 @@ if not exist "%TARGET_FOLDER%" (
     goto end
 )
 
-:: Prompt for model (default: gemma-3-12b-it-qat)
-set /p MODEL=Enter model name [default: gemma-3-12b-it-qat]: 
-if "!MODEL!"=="" set MODEL=gemma-3-12b-it-qat
+:: Prompt for model (default: google/gemma-3-12b)
+set /p MODEL=Enter model name [default: google/gemma-3-12b]: 
+if "!MODEL!"=="" set MODEL=google/gemma-3-12b
 
 :: Prompt for recursive mode
 set /p RECURSE=Run recursively? (y/n): 
