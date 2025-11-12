@@ -133,14 +133,17 @@ def convert_folder(folder_path, layout='horizontal', output_folder=None, bit_dep
 	
 	for cube_file in cube_files:
 		try:
-			print(f"Converting {cube_file.name}...", end=' ')
 			lut_array = parse_cube_file(cube_file)
+			size = lut_array.shape[0]
+			slices = size
+			
+			print(f"Converting {cube_file.name} ({slices}x{slices}x{slices}, {slices} slices)...", end=' ')
 			
 			output_name = cube_file.stem + '.png'
 			output_path = out_dir / output_name
 			
 			lut_to_png(lut_array, output_path, layout=layout, bit_depth=bit_depth)
-			print(f"✓ Saved to {output_path}")
+			print(f"✓")
 			
 		except Exception as e:
 			print(f"✗ Error: {e}")
