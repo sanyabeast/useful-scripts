@@ -1,3 +1,19 @@
+"""
+M3U8 Playlist Generator
+
+Scans directories for audio files and generates M3U8 playlists with shuffled tracks.
+Supports m4a, mp3, flac, wav, and ogg formats.
+
+Usage:
+    python dirs_to_m3u8.py <directory>              Generate playlist for single directory
+    python dirs_to_m3u8.py <directory> -r           Recursively process all subdirectories
+    python dirs_to_m3u8.py <directory> -s           Shuffle tracks randomly
+    
+Examples:
+    python dirs_to_m3u8.py "C:/Music/Album"
+    python dirs_to_m3u8.py "D:/Music" --recursive --shuffle
+"""
+
 import os
 import sys
 import random
@@ -66,10 +82,12 @@ def normalize_whitespace(text: str) -> str:
     return ' '.join(text.split())
 
 
-def shuffle_files(files: List[str]) -> List[str]:
-    shuffled = files.copy()
-    random.shuffle(shuffled)
-    return shuffled
+def sort_files(files: List[Path], shuffle: bool) -> List[Path]:
+    if shuffle:
+        shuffled = files.copy()
+        random.shuffle(shuffled)
+        return shuffled
+    return sorted(files, key=lambda f: f.name.lower())
 
 
 def find_audio_files(directory: Path) -> List[Path]:
@@ -99,14 +117,14 @@ def write_playlist_file(playlist_path: Path, audio_files: List[Path]) -> None:
             f.write(f"{audio_file}\n")
 
 
-def process_directory(root_dir: Path, current_dir: Path) -> bool:
+def process_directory(root_dir: Path, current_dir: Path, shuffle: bool) -> bool:
     audio_files = find_audio_files(current_dir)
     
     if not audio_files:
         Logger.dim(f"⊘ No audio files in {current_dir.name}")
         return False
     
-    shuffled_files = shuffle_files(audio_files)
+    sorted_files = sort_files(audio_files, shuffle)
     playlist_name = generate_playlist_name(root_dir, current_dir)
     playlist_path = root_dir / playlist_name
     
@@ -114,7 +132,7 @@ def process_directory(root_dir: Path, current_dir: Path) -> bool:
     Logger.dim(f"  → {len(audio_files)} tracks found")
     
     try:
-        write_playlist_file(playlist_path, shuffled_files)
+        write_playlist_file(playlist_path, sorted_files)
         Logger.success(f"Saved to {Colors.BOLD}{playlist_path}{Colors.RESET}")
         print()
         return True
@@ -124,7 +142,7 @@ def process_directory(root_dir: Path, current_dir: Path) -> bool:
         return False
 
 
-def create_playlists(directory: Path, recursive: bool) -> None:
+def create_playlists(directory: Path, recursive: bool, shuffle: bool) -> None:
     if not directory.exists():
         Logger.error(f"Directory not found: {directory}")
         sys.exit(1)
@@ -136,7 +154,8 @@ def create_playlists(directory: Path, recursive: bool) -> None:
     Logger.header(
         "M3U8 Playlist Generator",
         Directory=directory,
-        Mode='Recursive' if recursive else 'Single Directory'
+        Mode='Recursive' if recursive else 'Single Directory',
+        Order='Shuffled' if shuffle else 'Sorted by name'
     )
     
     directories_to_process = []
@@ -155,7 +174,7 @@ def create_playlists(directory: Path, recursive: bool) -> None:
         progress_bar = f"[{idx}/{total}]"
         print(f"{Colors.DIM}{progress_bar}{Colors.RESET}", end=" ")
         
-        if process_directory(directory, current_dir):
+        if process_directory(directory, current_dir, shuffle):
             created_count += 1
         else:
             skipped_count += 1
@@ -181,10 +200,16 @@ def main():
         help='Recursively scan subdirectories'
     )
     
+    parser.add_argument(
+        '-s', '--shuffle',
+        action='store_true',
+        help='Shuffle tracks randomly (default: sorted by name)'
+    )
+    
     args = parser.parse_args()
     
     try:
-        create_playlists(Path(args.directory), args.recursive)
+        create_playlists(Path(args.directory), args.recursive, args.shuffle)
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}⚠ Operation cancelled by user{Colors.RESET}")
         sys.exit(0)
