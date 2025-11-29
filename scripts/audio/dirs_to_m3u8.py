@@ -15,11 +15,12 @@ Examples:
 """
 
 import os
+import re
 import sys
 import random
 import argparse
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple
 
 
 class Colors:
@@ -27,7 +28,6 @@ class Colors:
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
-    MAGENTA = '\033[95m'
     BOLD = '\033[1m'
     DIM = '\033[2m'
     RESET = '\033[0m'
@@ -78,15 +78,22 @@ class Logger:
 AUDIO_EXTENSIONS = ['*.m4a', '*.mp3', '*.flac', '*.wav', '*.ogg']
 
 
-def normalize_whitespace(text: str) -> str:
-    return ' '.join(text.split())
+def sanitize_name(text: str) -> str:
+    text = text.replace(':', '-')
+    text = re.sub(r'_{2,}', '', text)
+    text = ' '.join(text.split())
+    return text
 
 
-def sort_files(files: List[Path], shuffle: bool) -> List[Path]:
+def should_skip_directory(name: str) -> bool:
+    return bool(re.match(r'^\[.+\]$', name))
+
+
+def order_files(files: List[Path], shuffle: bool) -> List[Path]:
     if shuffle:
-        shuffled = files.copy()
-        random.shuffle(shuffled)
-        return shuffled
+        result = files.copy()
+        random.shuffle(result)
+        return result
     return sorted(files, key=lambda f: f.name.lower())
 
 
@@ -97,17 +104,49 @@ def find_audio_files(directory: Path) -> List[Path]:
     return audio_files
 
 
-def generate_playlist_name(root_dir: Path, current_dir: Path) -> str:
-    relative_path = current_dir.relative_to(root_dir)
+def build_directory_index(root_dir: Path, directories: List[Path]) -> Dict[Path, List[int]]:
+    index_map: Dict[Path, List[int]] = {}
+    sibling_counter: Dict[Tuple[Path, str], int] = {}
+    next_index: Dict[Path, int] = {}
     
-    if relative_path == Path('.'):
-        return f"{current_dir.name.upper()}.m3u8"
+    for current_dir in directories:
+        relative = current_dir.relative_to(root_dir)
+        
+        if relative == Path('.'):
+            index_map[current_dir] = []
+            continue
+        
+        indices = []
+        for i, part in enumerate(relative.parts):
+            parent = root_dir / Path(*relative.parts[:i]) if i > 0 else root_dir
+            key = (parent, part)
+            
+            if key not in sibling_counter:
+                sibling_counter[key] = next_index.get(parent, 0)
+                next_index[parent] = sibling_counter[key] + 1
+            
+            indices.append(sibling_counter[key])
+        
+        index_map[current_dir] = indices
     
-    parent_parts = relative_path.parent.parts
-    prefix = ', '.join(parent_parts).replace(':', '-')
-    prefix = normalize_whitespace(prefix).lower()
+    return index_map
+
+
+def generate_playlist_name(root_dir: Path, current_dir: Path, index_map: Dict[Path, List[int]]) -> str:
+    relative = current_dir.relative_to(root_dir)
     
-    return f"{prefix} - {current_dir.name.upper()}.m3u8"
+    if relative == Path('.'):
+        parts = [current_dir.name]
+        prefix = "[00]"
+    else:
+        parts = list(relative.parts)
+        indices = index_map.get(current_dir, [])
+        prefix = '[' + '-'.join(f"{i:02d}" for i in indices) + ']'
+    
+    clean_parts = [sanitize_name(p) for p in parts]
+    full_path = ' — '.join(clean_parts)
+    
+    return f"{prefix} {full_path}.m3u8"
 
 
 def write_playlist_file(playlist_path: Path, audio_files: List[Path]) -> None:
@@ -117,15 +156,15 @@ def write_playlist_file(playlist_path: Path, audio_files: List[Path]) -> None:
             f.write(f"{audio_file}\n")
 
 
-def process_directory(root_dir: Path, current_dir: Path, shuffle: bool) -> bool:
+def process_directory(root_dir: Path, current_dir: Path, shuffle: bool, index_map: Dict[Path, List[int]]) -> bool:
     audio_files = find_audio_files(current_dir)
     
     if not audio_files:
         Logger.dim(f"⊘ No audio files in {current_dir.name}")
         return False
     
-    sorted_files = sort_files(audio_files, shuffle)
-    playlist_name = generate_playlist_name(root_dir, current_dir)
+    sorted_files = order_files(audio_files, shuffle)
+    playlist_name = generate_playlist_name(root_dir, current_dir, index_map)
     playlist_path = root_dir / playlist_name
     
     Logger.info(f"Creating {Colors.BOLD}{playlist_name}{Colors.RESET}")
@@ -162,9 +201,13 @@ def create_playlists(directory: Path, recursive: bool, shuffle: bool) -> None:
     
     if recursive:
         for root, dirs, files in os.walk(directory):
+            dirs[:] = [d for d in dirs if not should_skip_directory(d)]
+            dirs.sort(key=lambda d: d.lower().replace('_', ' '))
             directories_to_process.append(Path(root))
     else:
         directories_to_process.append(directory)
+    
+    index_map = build_directory_index(directory, directories_to_process)
     
     created_count = 0
     skipped_count = 0
@@ -174,7 +217,7 @@ def create_playlists(directory: Path, recursive: bool, shuffle: bool) -> None:
         progress_bar = f"[{idx}/{total}]"
         print(f"{Colors.DIM}{progress_bar}{Colors.RESET}", end=" ")
         
-        if process_directory(directory, current_dir, shuffle):
+        if process_directory(directory, current_dir, shuffle, index_map):
             created_count += 1
         else:
             skipped_count += 1
