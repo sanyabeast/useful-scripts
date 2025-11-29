@@ -1,8 +1,15 @@
 """
 M3U8 Playlist Generator
 
-Scans directories for audio files and generates M3U8 playlists with shuffled tracks.
+Scans directories for audio files and generates M3U8 playlists.
 Supports m4a, mp3, flac, wav, and ogg formats.
+
+Playlist Naming:
+    - Prefix [XX-YY-ZZ] reflects directory hierarchy for proper sorting
+    - Full path shown: [01-02] Albums — Rock — Classic.m3u8
+    - Folder order controlled via "XX. " prefix (e.g., "01. Albums", "02. Playlists")
+    - "XX. " prefix is stripped from playlist names
+    - Directories matching [something] pattern are excluded
 
 Usage:
     python dirs_to_m3u8.py <directory>              Generate playlist for single directory
@@ -80,7 +87,7 @@ AUDIO_EXTENSIONS = ['*.m4a', '*.mp3', '*.flac', '*.wav', '*.ogg']
 
 def sanitize_name(text: str) -> str:
     text = text.replace(':', '-')
-    text = re.sub(r'_{2,}', '', text)
+    text = re.sub(r'^\d{2}\.\s*', '', text)
     text = ' '.join(text.split())
     return text
 
@@ -202,7 +209,7 @@ def create_playlists(directory: Path, recursive: bool, shuffle: bool) -> None:
     if recursive:
         for root, dirs, files in os.walk(directory):
             dirs[:] = [d for d in dirs if not should_skip_directory(d)]
-            dirs.sort(key=lambda d: d.lower().replace('_', ' '))
+            dirs.sort(key=str.lower)
             directories_to_process.append(Path(root))
     else:
         directories_to_process.append(directory)
