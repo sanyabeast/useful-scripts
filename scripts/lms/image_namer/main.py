@@ -222,11 +222,12 @@ Current filename: "{current_filename}"{folder_hint}
 Requirements:
 - Describe what is visually shown (subject, setting, mood, colors)
 - Use lowercase snake_case, no extension
-- Maximum {args.max_words} content words (nouns, verbs, adjectives); prepositions/articles (on, in, the, a, of, with, at, to, for) don't count
+- Maximum {args.max_words} content words (nouns, verbs, adjectives); prepositions/articles don't count
+- Prefer precise, evocative words over multiple simple ones (e.g., "crimson" not "dark_red", "silhouette" not "dark_shape", "dusk" not "evening_sky")
 - Length: {args.min_length}-{args.max_length} characters
-- Avoid: generic words (image, photo, picture), personal names, timestamps, abstract poetry
+- Avoid: generic words (image, photo, picture), personal names, timestamps
 
-Examples: foggy_forest_cabin (3 words), red_cat_sleeping_on_balcony (4 words: red, cat, sleeping, balcony)
+Examples: crimson_sunset_silhouette (3 words), tabby_cat_napping_on_balcony (4 words)
 
 Rate current filename descriptiveness (0.0-1.0) and provide your suggestion."""
 
