@@ -32,6 +32,10 @@ set /p FORCE=Force rename all files regardless of quality? (y/n) [default: n]:
 set "FORCE_FLAG="
 if /i "!FORCE!"=="y" set "FORCE_FLAG=--force"
 
+:: Prompt for max words
+set /p MAX_WORDS=Max content words in filename (excluding prepositions) [default: 5]: 
+if "!MAX_WORDS!"=="" set MAX_WORDS=5
+
 :: Show confirmation with parameter preview
 echo.
 echo ----------------------------------------
@@ -46,6 +50,7 @@ if "!RECURSIVE_FLAG!"=="--recursive" (
     echo [ ] Only processing top-level folder
 )
 echo Threshold: !THRESHOLD!
+echo Max words: !MAX_WORDS!
 if "!FORCE_FLAG!"=="--force" (
     echo [x] Force renaming all files
 ) else (
@@ -64,11 +69,11 @@ if /i not "!CONFIRM!"=="y" (
 :: Run the Python script
 echo.
 echo Running:
-echo python "D:\osProjects\useful-scripts\scripts\lms\image_namer\main.py" --model !MODEL! --folder "!TARGET_FOLDER!" !RECURSIVE_FLAG! --threshold !THRESHOLD! !FORCE_FLAG!
+echo python "D:\osProjects\useful-scripts\scripts\lms\image_namer\main.py" --model !MODEL! --folder "!TARGET_FOLDER!" !RECURSIVE_FLAG! --threshold !THRESHOLD! --max-words !MAX_WORDS! !FORCE_FLAG!
 echo.
 
 :: Use call to ensure batch file continues after Python script completes
-call python "D:\osProjects\useful-scripts\scripts\lms\image_namer\main.py" --model !MODEL! --folder "!TARGET_FOLDER!" !RECURSIVE_FLAG! --threshold !THRESHOLD! !FORCE_FLAG!
+call python "D:\osProjects\useful-scripts\scripts\lms\image_namer\main.py" --model !MODEL! --folder "!TARGET_FOLDER!" !RECURSIVE_FLAG! --threshold !THRESHOLD! --max-words !MAX_WORDS! !FORCE_FLAG!
 if errorlevel 1 (
     echo.
     echo [!] Python script exited with an error.

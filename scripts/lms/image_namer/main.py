@@ -131,6 +131,7 @@ def main():
     parser.add_argument("--recursive", action="store_true", help="Include nested folders when using --folder")
     parser.add_argument("--force", action="store_true", help="Force renaming all files regardless of LLM's assessment")
     parser.add_argument("--threshold", type=float, default=0.4, help="Threshold for keeping original filename (0-1, default: 0.4)")
+    parser.add_argument("--max-words", type=int, default=5, help="Maximum content words in filename, excluding prepositions/articles (default: 5)")
     args = parser.parse_args()
 
     print(f"🤖 Loading model: {args.model}...")
@@ -184,6 +185,8 @@ def main():
     error_count = 0
     kept_count = 0
 
+    base_folder = Path(args.folder) if args.folder else None
+    
     for idx, image_path in enumerate(image_files, start=1):
         try:
             current_filename = image_path.stem
@@ -201,45 +204,31 @@ def main():
             image_handle = lms.prepare_image(str(image_path))
             chat = lms.Chat()
 
-            prompt = f"""
-                You are a **naming expert AI** designed to generate **highly descriptive, vivid, and semantically rich** filenames based on image content.
+            relative_folder = ""
+            if base_folder:
+                try:
+                    rel_path = image_path.parent.relative_to(base_folder)
+                    if str(rel_path) != ".":
+                        relative_folder = str(rel_path).replace("\\", "/")
+                except ValueError:
+                    pass
+            
+            folder_hint = f'\nFolder context: "{relative_folder}" (use as hint about category/theme)' if relative_folder else ""
+            
+            prompt = f"""You are a filename generator for images. Analyze the image and suggest a descriptive snake_case filename.
 
-                Current filename: "{current_filename}"
+Current filename: "{current_filename}"{folder_hint}
 
-                ---
+Requirements:
+- Describe what is visually shown (subject, setting, mood, colors)
+- Use lowercase snake_case, no extension
+- Maximum {args.max_words} content words (nouns, verbs, adjectives); prepositions/articles (on, in, the, a, of, with, at, to, for) don't count
+- Length: {args.min_length}-{args.max_length} characters
+- Avoid: generic words (image, photo, picture), personal names, timestamps, abstract poetry
 
-                ## Task:
-                1. Carefully examine the visual contents of the image.
-                2. Rate the quality of the current filename (from 0.0 to 1.0) based on:
-                - Does it accurately and vividly describe the image?
-                - Does it follow lowercase `snake_case` format?
-                - Is it unique, unambiguous, and avoids generic names like `image_001`, `photo1`, etc.?
-                - Does it reflect the subject, mood, setting, or composition?
+Examples: foggy_forest_cabin (3 words), red_cat_sleeping_on_balcony (4 words: red, cat, sleeping, balcony)
 
-                3. If the current name is not vivid or descriptive, **generate a better one**:
-                - Use **lowercase snake_case**
-                - No file extensions
-                - Avoid generic terms like "image", "photo", "picture"
-                - Avoid personal names (e.g., "john", "emily")
-                - Avoid camera terminology or timestamps
-                - Avoid overly poetic or abstract words unless the image clearly reflects them
-                - Be visually concrete, e.g. "foggy_forest_cabin" or "red_cat_on_balcony"
-                - Use **3–6 descriptive words** max (joined by `_`)
-                - Filename length: {args.min_length} to {args.max_length} characters
-
-                4. Provide:
-                - `suggested_filename` (snake_case, without extension)
-                - `current_name_descriptiveness` (0.0 to 1.0)
-                - `suggested_name_descriptiveness` (0.0 to 1.0)
-
-                Only respond in this exact JSON format:
-                ```json
-                {{
-                "suggested_filename": "...",
-                "current_name_descriptiveness": ...,
-                "suggested_name_descriptiveness": ...
-                }}
-            """
+Rate current filename descriptiveness (0.0-1.0) and provide your suggestion."""
 
             chat.add_user_message(prompt, images=[image_handle])
             print(f"  💭 Generating filename suggestion...")
