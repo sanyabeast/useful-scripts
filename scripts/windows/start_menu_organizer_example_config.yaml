@@ -32,12 +32,9 @@ folders:
     - GitHub Desktop
     - Godot*
     - Postman
-    - Visual Studio
     - Android Studio
-    - Visual Studio Code
-    - Visual Studio Code - Insiders
+    - Visual Studio*
     - Oracle VirtualBox
-    - Visual Studio Installer
     - Genymotion
     - Postman
     - DB Browser (SQLite)
@@ -118,8 +115,7 @@ folders:
     - Kingston SSD Manager*
     - MiniTool Partition Wizard
     - PowerToys (Preview)
-    - CrystalDiskInfo Shizuku Edition
-    - CrystalDiskMark 9 Shizuku Edition
+    - CrystalDisk*
     - OpenVPN Connect
     - HWiNFO
   Tools:

@@ -122,32 +122,39 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
                 logger.debug(f"Processing directory: {root} with {len(files)} files")
                 
                 for file in files:
-                    if file.endswith(".lnk"):
-                        if exclude_patterns and matches_any_pattern(file, exclude_patterns):
-                            source = os.path.join(root, file)
-                            try:
-                                os.remove(source)
-                                logger.info(f"Deleted (excluded by pattern): {file}")
-                                shortcuts_excluded += 1
-                            except Exception as e:
-                                logger.error(f"Failed to delete excluded file {file}: {e}")
-                            continue
-                        
-                        source = os.path.join(root, file)
-                        destination = os.path.join(temp_folder, file)
-                        
+                    source = os.path.join(root, file)
+                    
+                    if not file.endswith(".lnk"):
                         try:
-                            if os.path.exists(destination):
-                                logger.info(f"Overwriting duplicate: {destination}")
-                                os.remove(destination)
-                                
-                            shutil.move(source, destination)
-                            logger.info(f"Moved: {source} -> {destination}")
-                            shortcuts_moved += 1
-                            
+                            os.remove(source)
+                            logger.info(f"Deleted (non-lnk file): {file}")
                         except Exception as e:
-                            logger.error(f"Failed to move {source} to {destination}: {e}")
-                            errors_encountered += 1
+                            logger.error(f"Failed to delete non-lnk file {file}: {e}")
+                        continue
+                    
+                    if exclude_patterns and matches_any_pattern(file, exclude_patterns):
+                        try:
+                            os.remove(source)
+                            logger.info(f"Deleted (excluded by pattern): {file}")
+                            shortcuts_excluded += 1
+                        except Exception as e:
+                            logger.error(f"Failed to delete excluded file {file}: {e}")
+                        continue
+                    
+                    destination = os.path.join(temp_folder, file)
+                    
+                    try:
+                        if os.path.exists(destination):
+                            logger.info(f"Overwriting duplicate: {destination}")
+                            os.remove(destination)
+                            
+                        shutil.move(source, destination)
+                        logger.info(f"Moved: {source} -> {destination}")
+                        shortcuts_moved += 1
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to move {source} to {destination}: {e}")
+                        errors_encountered += 1
                             
         logger.info(f"Move operation completed. Shortcuts moved: {shortcuts_moved}, Excluded: {shortcuts_excluded}, Errors: {errors_encountered}")
         
@@ -156,12 +163,11 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
         raise
 
 def remove_empty_folders(input_menus):
-    """Remove empty folders from the input menus, except Startup."""
+    """Remove empty folders recursively from the input menus, except Startup."""
     logger = logging.getLogger(__name__)
-    logger.info("Starting to remove empty folders")
+    logger.info("Starting to remove empty folders (recursive)")
     
     folders_removed = 0
-    folders_skipped = 0
     
     try:
         for menu in input_menus:
@@ -170,24 +176,28 @@ def remove_empty_folders(input_menus):
             if not os.path.exists(menu):
                 logger.warning(f"Menu path does not exist: {menu}")
                 continue
-                
-            for root, dirs, _ in os.walk(menu, topdown=False):
-                # Ignore Startup folder
-                if "Startup" in os.path.basename(root):
-                    logger.debug(f"Skipping Startup folder: {root}")
-                    continue
-
-                for dir in dirs:
-                    dir_path = os.path.join(root, dir)
-                    try:
-                        os.rmdir(dir_path)
-                        logger.info(f"Removed empty folder: {dir_path}")
-                        folders_removed += 1
-                    except OSError as e:
-                        logger.debug(f"Could not remove folder {dir_path}: {e} (likely not empty)")
-                        folders_skipped += 1
+            
+            changed = True
+            while changed:
+                changed = False
+                for root, dirs, files in os.walk(menu, topdown=False):
+                    if "Startup" in root:
+                        continue
+                    
+                    for dir_name in dirs:
+                        dir_path = os.path.join(root, dir_name)
+                        if "Startup" in dir_path:
+                            continue
+                        try:
+                            if os.path.isdir(dir_path) and not os.listdir(dir_path):
+                                os.rmdir(dir_path)
+                                logger.info(f"Removed empty folder: {dir_path}")
+                                folders_removed += 1
+                                changed = True
+                        except OSError as e:
+                            logger.debug(f"Could not remove folder {dir_path}: {e}")
                         
-        logger.info(f"Empty folder cleanup completed. Removed: {folders_removed}, Skipped: {folders_skipped}")
+        logger.info(f"Empty folder cleanup completed. Removed: {folders_removed}")
         
     except Exception as e:
         logger.error(f"Critical error in remove_empty_folders: {e}")
