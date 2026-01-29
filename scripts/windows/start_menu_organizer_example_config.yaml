@@ -10,45 +10,91 @@ misc_folder: "_ More"
 
 temp_folder: "./start_menu_temp"
 
+temp_folder: "./start_menu_temp"
+
+exclude_patterns:
+  - "*uninstall*"
+  - "*documentation*"
+  - "*readme*"
+  - "*help*"
+  - "*.html"
+  - "*.chm"
+  - "*.pdf"
+  - "*.url"
+
 folders:
-  
-  _ Communicate:
+  Communicate:
     - Discord
     - Telegram
-  _ Development:
+    - Slack
+  Development:
     - Git Bash
     - GitHub Desktop
-    - Godot v4.2.2
-    - Godot v4.2.2-mono
+    - Godot*
     - Postman
-    - Visual Studio 2022
+    - Visual Studio
     - Android Studio
     - Visual Studio Code
+    - Visual Studio Code - Insiders
+    - Oracle VirtualBox
     - Visual Studio Installer
     - Genymotion
-  _ Gaming:
+    - Postman
+    - DB Browser (SQLite)
+    - Docker Desktop
+    - Void
+    - Yaak
+    - Windsurf
+    - Cursor
+    - MongoDBCompass
+    - Oracle VirtualBox
+  Gaming - Stores:
     - EA
-    - Emulation Station - Desktop Edition (ES-DE)
     - GOG Galaxy
-    - RetroArch
-    - Sunshine
     - Ubisoft Connect
     - Battle.net
     - Steam
-    - rpcs3
-    - pcsx2-qt
-    - yuzu
-  _ Machine Learning:
-    - Amuse
-    - GPT4All
-    - Stable Diffusion - Web UI 1.10
-  _ Scripts:
+    - Epic Games Launcher
+  Gaming - Tools:
+    - NBTExplorer
+  Gaming - Extra:
+    - Sunshine
+    - Prism Launcher
+    - Roblox Player
+    - Roblox Studio
+    - ES-DE
+    - RetroArch
+    - PPSSPP
+  Machine Learning:
+    - Stable Diffusion - Web UI
+    - Fooocus
+    - ComfyUI
+    - Ultimate Vocal Remover
+    - Upscayl
+    - LM Studio
+    - fluxgym
+    - Ollama
+    - a1111
+    - kohya_ss
+    - F5-TTS
+    - Pinokio
+    - Claude
+    - Local Deep Research
+    - GPT Researcher
+    - OneTrainer
+    - AnythingLLM
+    - Msty
+    - Jan
+    - Invoke Community Edition
+  Scripts:
     - _ Run Casual Scripts
     - Fix Image Formats
     - Regenerate Music Playlists
     - Organize Start Menu
-  _ System & Hardware:
-    - "AMD Software꞉ Adrenalin Edition"
+    - On Wake Script
+    - Timeout Shutdown
+  System & Hardware:
+    - Autoruns64
     - CPU-Z
     - GPU-Z
     - HWiNFO64
@@ -58,27 +104,41 @@ folders:
     - Galaxy Buds
     - OpenRGB
     - Benchmark - CrystalDiskMark 8
-    - Benchmark - FurMark2 x64
+    - Benchmark - FurMark2*
     - Benchmark - Superposition
     - Benchmark - Valley
+    - Benchmark - Cinebench
     - Logitech G HUB
     - Equalizer - Configurator
     - Equalizer - Configuration Editor
     - 7+ Taskbar Tweaker
     - MiniBin
-  _ Tools:
+    - "Open-Shell Menu Settings"
+    - NVIDIA
+    - Kingston SSD Manager*
+    - MiniTool Partition Wizard
+    - PowerToys (Preview)
+    - CrystalDiskInfo Shizuku Edition
+    - CrystalDiskMark 9 Shizuku Edition
+    - OpenVPN Connect
+    - HWiNFO
+  Tools:
     - AIMP - AudioConverter
     - AIMP - TagEditor
-    - Blender 3.6
+    - Blender*
     - FileZilla
-    - GIMP 2.10.38
-    - Krita (x64)
-    - OBS Studio (64bit)
+    - GIMP*
+    - Krita*
+    - OBS Studio*
     - Oracle VM VirtualBox
     - RustDesk
-    - Upscayl
-    - XMedia Recode 64bit
-  _ Windows Accessories:
+    - XMedia Recode*
+    - HxD
+    - OpenVPN Connect
+    - Audacity
+    - By Click Downloader
+    - FL Studio*
+  Windows Accessories:
     - Windows PowerShell
     - Command Prompt
     - File Explorer
@@ -90,7 +150,7 @@ folders:
     - Task Manager
     - Internet Explorer
     - Microsoft Edge
-  _ Windows Administrative Tools:
+  Windows Administrative Tools:
     - Defragment Disks
     - Control Panel
     - Administrative Tools
@@ -112,3 +172,6 @@ folders:
     - Windows Defender Firewall with Advanced Security
     - Windows Memory Diagnostic
     - Security Configuration Management
+    - Autoruns
+    - Process Explorer
+    - Device Manager

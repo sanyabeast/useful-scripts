@@ -4,6 +4,48 @@ import argparse
 import yaml
 import logging
 from datetime import datetime
+import fnmatch
+
+def match_pattern(pattern, filename, match_extension=False):
+    """Match pattern against filename with optional wildcards.
+    
+    - 'name*' matches files starting with 'name'
+    - '*name' matches files ending with 'name' (or extension like *.pdf)
+    - '*name*' matches files containing 'name'
+    - 'name' matches exactly 'name'
+    
+    If match_extension is True, matches against full filename including extension.
+    Otherwise matches against filename without extension.
+    """
+    if match_extension:
+        target = filename.lower()
+    else:
+        target = os.path.splitext(filename)[0].lower()
+    
+    pattern_lower = pattern.lower()
+    starts_with_wildcard = pattern_lower.startswith('*')
+    ends_with_wildcard = pattern_lower.endswith('*')
+    
+    if starts_with_wildcard and ends_with_wildcard:
+        core = pattern_lower[1:-1]
+        return core in target
+    elif starts_with_wildcard:
+        core = pattern_lower[1:]
+        return target.endswith(core)
+    elif ends_with_wildcard:
+        core = pattern_lower[:-1]
+        return target.startswith(core)
+    else:
+        return target == pattern_lower
+
+def matches_any_pattern(filename, patterns):
+    """Check if filename matches any of the given patterns."""
+    for pattern in patterns:
+        has_extension = '.' in pattern and not pattern.startswith('*.')
+        match_ext = '.' in pattern
+        if match_pattern(pattern, filename, match_extension=match_ext):
+            return True
+    return False
 
 def setup_logging():
     """Setup logging configuration."""
@@ -46,12 +88,16 @@ def load_config(file_path):
         logger.error(f"Unexpected error loading configuration: {e}")
         raise
 
-def move_shortcuts_to_temp(input_menus, temp_folder):
+def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
     """Move all shortcuts from input menus to the temporary folder, ignoring the Startup folder."""
     logger = logging.getLogger(__name__)
     logger.info(f"Starting to move shortcuts to temp folder: {temp_folder}")
     
+    if exclude_patterns is None:
+        exclude_patterns = []
+    
     shortcuts_moved = 0
+    shortcuts_excluded = 0
     errors_encountered = 0
     
     try:
@@ -69,7 +115,6 @@ def move_shortcuts_to_temp(input_menus, temp_folder):
                 continue
                 
             for root, _, files in os.walk(menu):
-                # Fully ignore paths containing "Startup"
                 if "Startup" in os.path.basename(root):
                     logger.info(f"Skipping Startup folder: {root}")
                     continue
@@ -77,12 +122,16 @@ def move_shortcuts_to_temp(input_menus, temp_folder):
                 logger.debug(f"Processing directory: {root} with {len(files)} files")
                 
                 for file in files:
-                    if file.endswith(".lnk"):  # Only move shortcut files
+                    if file.endswith(".lnk"):
+                        if exclude_patterns and matches_any_pattern(file, exclude_patterns):
+                            logger.info(f"Excluded by pattern: {file}")
+                            shortcuts_excluded += 1
+                            continue
+                        
                         source = os.path.join(root, file)
                         destination = os.path.join(temp_folder, file)
                         
                         try:
-                            # Overwrite duplicates since they're the same shortcuts from different locations
                             if os.path.exists(destination):
                                 logger.info(f"Overwriting duplicate: {destination}")
                                 os.remove(destination)
@@ -95,7 +144,7 @@ def move_shortcuts_to_temp(input_menus, temp_folder):
                             logger.error(f"Failed to move {source} to {destination}: {e}")
                             errors_encountered += 1
                             
-        logger.info(f"Move operation completed. Shortcuts moved: {shortcuts_moved}, Errors: {errors_encountered}")
+        logger.info(f"Move operation completed. Shortcuts moved: {shortcuts_moved}, Excluded: {shortcuts_excluded}, Errors: {errors_encountered}")
         
     except Exception as e:
         logger.error(f"Critical error in move_shortcuts_to_temp: {e}")
@@ -196,20 +245,40 @@ def create_folders_and_organize(temp_folder, output_menu, folders, misc_folder):
                 folder_path = create_nested_folder(output_menu, folder_name)
                 
                 logger.debug(f"Processing {len(shortcuts)} shortcuts for folder '{folder_name}'")
-                for shortcut_name in shortcuts:
-                    shortcut_file = shortcut_name + ".lnk"
-                    shortcut_path = os.path.join(temp_folder, shortcut_file)
+                for shortcut_pattern in shortcuts:
+                    has_wildcard = shortcut_pattern.startswith('*') or shortcut_pattern.endswith('*')
                     
-                    if os.path.exists(shortcut_path):
-                        try:
-                            shutil.copy(shortcut_path, folder_path)
-                            logger.info(f"Copied: {shortcut_file} -> {folder_path}")
-                            shortcuts_organized += 1
-                        except Exception as e:
-                            logger.error(f"Failed to copy {shortcut_file} to {folder_path}: {e}")
-                            errors_encountered += 1
+                    if has_wildcard:
+                        matched_files = [
+                            f for f in os.listdir(temp_folder)
+                            if f.endswith('.lnk') and match_pattern(shortcut_pattern, f, match_extension=False)
+                        ]
+                        if matched_files:
+                            for shortcut_file in matched_files:
+                                shortcut_path = os.path.join(temp_folder, shortcut_file)
+                                try:
+                                    shutil.copy(shortcut_path, folder_path)
+                                    logger.info(f"Copied (pattern '{shortcut_pattern}'): {shortcut_file} -> {folder_path}")
+                                    shortcuts_organized += 1
+                                except Exception as e:
+                                    logger.error(f"Failed to copy {shortcut_file} to {folder_path}: {e}")
+                                    errors_encountered += 1
+                        else:
+                            logger.warning(f"No shortcuts matched pattern: {shortcut_pattern}")
                     else:
-                        logger.warning(f"Shortcut not found in temp folder: {shortcut_file}")
+                        shortcut_file = shortcut_pattern + ".lnk"
+                        shortcut_path = os.path.join(temp_folder, shortcut_file)
+                        
+                        if os.path.exists(shortcut_path):
+                            try:
+                                shutil.copy(shortcut_path, folder_path)
+                                logger.info(f"Copied: {shortcut_file} -> {folder_path}")
+                                shortcuts_organized += 1
+                            except Exception as e:
+                                logger.error(f"Failed to copy {shortcut_file} to {folder_path}: {e}")
+                                errors_encountered += 1
+                        else:
+                            logger.warning(f"Shortcut not found in temp folder: {shortcut_file}")
                         
             except Exception as e:
                 logger.error(f"Error creating/processing folder {folder_name}: {e}")
@@ -275,9 +344,13 @@ def main():
             
         logger.info(f"Configuration validated. Input menus: {len(config['input_menus'])}, Folders to create: {len(config['folders'])}")
         
+        exclude_patterns = config.get('exclude_patterns', [])
+        if exclude_patterns:
+            logger.info(f"Exclude patterns configured: {exclude_patterns}")
+        
         # Step 1: Move all shortcuts to temp folder
         logger.info("=== Step 1: Moving shortcuts to temp folder ===")
-        move_shortcuts_to_temp(config['input_menus'], config['temp_folder'])
+        move_shortcuts_to_temp(config['input_menus'], config['temp_folder'], exclude_patterns)
         
         # Step 2: Create folders in the output menu and organize shortcuts
         logger.info("=== Step 2: Organizing shortcuts into folders ===")
