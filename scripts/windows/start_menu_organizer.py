@@ -124,8 +124,13 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
                 for file in files:
                     if file.endswith(".lnk"):
                         if exclude_patterns and matches_any_pattern(file, exclude_patterns):
-                            logger.info(f"Excluded by pattern: {file}")
-                            shortcuts_excluded += 1
+                            source = os.path.join(root, file)
+                            try:
+                                os.remove(source)
+                                logger.info(f"Deleted (excluded by pattern): {file}")
+                                shortcuts_excluded += 1
+                            except Exception as e:
+                                logger.error(f"Failed to delete excluded file {file}: {e}")
                             continue
                         
                         source = os.path.join(root, file)
