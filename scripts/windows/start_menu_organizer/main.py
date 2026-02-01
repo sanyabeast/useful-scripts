@@ -125,6 +125,9 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
                     source = os.path.join(root, file)
                     
                     if not file.endswith(".lnk"):
+                        if file.lower() == "desktop.ini":
+                            logger.debug(f"Preserving desktop.ini: {source}")
+                            continue
                         try:
                             os.remove(source)
                             logger.info(f"Deleted (non-lnk file): {file}")
