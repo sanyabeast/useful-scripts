@@ -3,12 +3,10 @@
 input_menus:
   - C:\Users\retr0\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
   - C:\ProgramData\Microsoft\Windows\Start Menu\Programs
-  
+
 output_menu: C:\Users\retr0\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
 
-misc_folder: "_ More"
-
-temp_folder: "./start_menu_temp"
+misc_folder: "More/Apps"
 
 temp_folder: "./start_menu_temp"
 
@@ -25,149 +23,149 @@ exclude_patterns:
 folders:
   Communicate:
     - Discord
-    - Telegram
     - Slack
+    - Telegram
   Development:
+    - Android Studio
+    - Cursor
+    - DB Browser (SQLite)
+    - Docker Desktop
+    - Genymotion
     - Git Bash
     - GitHub Desktop
     - Godot*
-    - Postman
-    - Android Studio
-    - Visual Studio*
-    - Oracle VirtualBox
-    - Genymotion
-    - Postman
-    - DB Browser (SQLite)
-    - Docker Desktop
-    - Void
-    - Yaak
-    - Windsurf
-    - Cursor
     - MongoDBCompass
     - Oracle VirtualBox
+    - Postman
+    - Unity*
+    - Visual Studio*
+    - Void
+    - Windsurf
+    - Yaak
   Gaming - Stores:
-    - EA
-    - GOG Galaxy
-    - Ubisoft Connect
     - Battle.net
-    - Steam
+    - EA
     - Epic Games Launcher
+    - GOG Galaxy
+    - Steam
+    - Ubisoft Connect
   Gaming - Tools:
     - NBTExplorer
   Gaming - Extra:
-    - Sunshine
+    - ES-DE
+    - PPSSPP
     - Prism Launcher
+    - RetroArch
     - Roblox Player
     - Roblox Studio
-    - ES-DE
-    - RetroArch
-    - PPSSPP
+    - Sunshine
   Machine Learning:
-    - Stable Diffusion - Web UI
-    - Fooocus
+    - a1111
+    - AnythingLLM
+    - Claude
     - ComfyUI
+    - F5-TTS
+    - fluxgym
+    - Fooocus
+    - GPT Researcher
+    - Invoke Community Edition
+    - Jan
+    - kohya_ss
+    - LM Studio
+    - Local Deep Research
+    - Msty
+    - Ollama
+    - OneTrainer
+    - Pinokio
+    - Stable Diffusion - Web UI
     - Ultimate Vocal Remover
     - Upscayl
-    - LM Studio
-    - fluxgym
-    - Ollama
-    - a1111
-    - kohya_ss
-    - F5-TTS
-    - Pinokio
-    - Claude
-    - Local Deep Research
-    - GPT Researcher
-    - OneTrainer
-    - AnythingLLM
-    - Msty
-    - Jan
-    - Invoke Community Edition
   Scripts:
     - _ Run Casual Scripts
     - Fix Image Formats
-    - Regenerate Music Playlists
-    - Organize Start Menu
     - On Wake Script
+    - Organize Start Menu
+    - Regenerate Music Playlists
     - Timeout Shutdown
   System & Hardware:
+    - 7+ Taskbar Tweaker
     - Autoruns64
-    - CPU-Z
-    - GPU-Z
-    - HWiNFO64
-    - HWMonitor
-    - WizTree
-    - EarTrumpet
-    - Galaxy Buds
-    - OpenRGB
+    - Benchmark - Cinebench
     - Benchmark - CrystalDiskMark 8
     - Benchmark - FurMark2*
     - Benchmark - Superposition
     - Benchmark - Valley
-    - Benchmark - Cinebench
-    - Logitech G HUB
-    - Equalizer - Configurator
-    - Equalizer - Configuration Editor
-    - 7+ Taskbar Tweaker
-    - MiniBin
-    - "Open-Shell Menu Settings"
-    - NVIDIA
-    - Kingston SSD Manager*
-    - MiniTool Partition Wizard
-    - PowerToys (Preview)
+    - CPU-Z
     - CrystalDisk*
+    - EarTrumpet
+    - Equalizer - Configuration Editor
+    - Equalizer - Configurator
+    - Galaxy Buds
+    - GPU-Z
+    - HWiNFO*
+    - HWiNFO64
+    - HWMonitor
+    - Kingston SSD Manager*
+    - Logitech G HUB
+    - MiniBin
+    - MiniTool Partition Wizard
+    - NVIDIA
+    - "Open-Shell Menu Settings"
+    - OpenRGB
     - OpenVPN Connect
-    - HWiNFO
+    - PowerToys (Preview)
+    - Winaero Tweaker
+    - WizTree
   Tools:
     - AIMP - AudioConverter
     - AIMP - TagEditor
+    - Audacity
     - Blender*
+    - By Click Downloader
     - FileZilla
+    - FL Studio*
     - GIMP*
+    - HxD
     - Krita*
     - OBS Studio*
+    - OpenVPN Connect
     - Oracle VM VirtualBox
     - RustDesk
     - XMedia Recode*
-    - HxD
-    - OpenVPN Connect
-    - Audacity
-    - By Click Downloader
-    - FL Studio*
   Windows Accessories:
-    - Windows PowerShell
     - Command Prompt
     - File Explorer
+    - Internet Explorer
+    - Microsoft Edge
     - Notepad
     - Paint
     - Remote Desktop Connection
     - Run
     - Snipping Tool
     - Task Manager
-    - Internet Explorer
-    - Microsoft Edge
+    - Windows PowerShell
   Windows Administrative Tools:
-    - Defragment Disks
-    - Control Panel
     - Administrative Tools
+    - Autoruns
     - Component Services
     - Computer Management
+    - Control Panel
     - Defragment and Optimize Drives
+    - Defragment Disks
+    - Device Manager
     - Disk Cleanup
     - Event Viewer
     - iSCSI Initiator
     - Local Security Policy
     - Performance Monitor
     - PowerToys (Preview)
+    - Process Explorer
     - Registry Editor
     - Resource Monitor
+    - Security Configuration Management
     - Services
     - System Configuration
     - System Information
     - Task Scheduler
     - Windows Defender Firewall with Advanced Security
     - Windows Memory Diagnostic
-    - Security Configuration Management
-    - Autoruns
-    - Process Explorer
-    - Device Manager
