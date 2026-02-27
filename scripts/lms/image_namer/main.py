@@ -184,6 +184,7 @@ def main():
     success_count = 0
     error_count = 0
     kept_count = 0
+    error_list = []
 
     base_folder = Path(args.folder) if args.folder else None
     
@@ -278,6 +279,7 @@ Rate current filename descriptiveness (0.0-1.0) and provide your suggestion."""
 
         except Exception as e:
             print(f"❌ [{idx}/{total_images}] Error processing {image_path.name}: {e}\n")
+            error_list.append((image_path, str(e)))
             error_count += 1
 
     print(f"📊 Summary:")
@@ -285,6 +287,24 @@ Rate current filename descriptiveness (0.0-1.0) and provide your suggestion."""
     print(f"  🔒 Kept original name: {kept_count}")
     print(f"  ❌ Errors: {error_count}")
     print(f"🎉 All done!")
+    
+    if error_list:
+        while True:
+            print("\n" + "="*50)
+            print("Choose an option:")
+            print("  [1] View error list")
+            print("  [2] Exit")
+            choice = input("Enter choice (1/2): ").strip()
+            
+            if choice == "1":
+                print(f"\n❌ Failed to rename {len(error_list)} file(s):\n")
+                for i, (path, error) in enumerate(error_list, 1):
+                    print(f"  {i}. {path}")
+                    print(f"     Error: {error}\n")
+            elif choice == "2":
+                break
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
 
 
 if __name__ == "__main__":
