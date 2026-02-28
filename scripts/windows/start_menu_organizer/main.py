@@ -47,6 +47,14 @@ def matches_any_pattern(filename, patterns):
             return True
     return False
 
+def is_ignored_path(path, ignored_folders):
+    normalized = os.path.normpath(path).lower()
+    for ignored in ignored_folders:
+        ignored_norm = os.path.normpath(ignored).lower()
+        if normalized == ignored_norm or normalized.startswith(ignored_norm + os.sep):
+            return True
+    return False
+
 def setup_logging():
     """Setup logging configuration."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -88,13 +96,15 @@ def load_config(file_path):
         logger.error(f"Unexpected error loading configuration: {e}")
         raise
 
-def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
+def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None, ignored_folders=None):
     """Move all shortcuts from input menus to the temporary folder, ignoring the Startup folder."""
     logger = logging.getLogger(__name__)
     logger.info(f"Starting to move shortcuts to temp folder: {temp_folder}")
     
     if exclude_patterns is None:
         exclude_patterns = []
+    if ignored_folders is None:
+        ignored_folders = []
     
     shortcuts_moved = 0
     shortcuts_excluded = 0
@@ -114,9 +124,14 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
                 logger.warning(f"Input menu path does not exist: {menu}")
                 continue
                 
-            for root, _, files in os.walk(menu):
+            for root, dirs, files in os.walk(menu):
                 if "Startup" in os.path.basename(root):
                     logger.info(f"Skipping Startup folder: {root}")
+                    continue
+                
+                if is_ignored_path(root, ignored_folders):
+                    logger.info(f"Skipping ignored folder: {root}")
+                    dirs.clear()
                     continue
 
                 logger.debug(f"Processing directory: {root} with {len(files)} files")
@@ -165,10 +180,13 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None):
         logger.error(f"Critical error in move_shortcuts_to_temp: {e}")
         raise
 
-def remove_empty_folders(input_menus):
+def remove_empty_folders(input_menus, ignored_folders=None):
     """Remove empty folders recursively from the input menus, except Startup."""
     logger = logging.getLogger(__name__)
     logger.info("Starting to remove empty folders (recursive)")
+    
+    if ignored_folders is None:
+        ignored_folders = []
     
     folders_removed = 0
     
@@ -186,10 +204,14 @@ def remove_empty_folders(input_menus):
                 for root, dirs, files in os.walk(menu, topdown=False):
                     if "Startup" in root:
                         continue
+                    if is_ignored_path(root, ignored_folders):
+                        continue
                     
                     for dir_name in dirs:
                         dir_path = os.path.join(root, dir_name)
                         if "Startup" in dir_path:
+                            continue
+                        if is_ignored_path(dir_path, ignored_folders):
                             continue
                         try:
                             if os.path.isdir(dir_path) and not os.listdir(dir_path):
@@ -366,9 +388,13 @@ def main():
         if exclude_patterns:
             logger.info(f"Exclude patterns configured: {exclude_patterns}")
         
+        ignored_folders = config.get('ignored_folders', [])
+        if ignored_folders:
+            logger.info(f"Ignored folders configured: {ignored_folders}")
+        
         # Step 1: Move all shortcuts to temp folder
         logger.info("=== Step 1: Moving shortcuts to temp folder ===")
-        move_shortcuts_to_temp(config['input_menus'], config['temp_folder'], exclude_patterns)
+        move_shortcuts_to_temp(config['input_menus'], config['temp_folder'], exclude_patterns, ignored_folders)
         
         # Step 2: Create folders in the output menu and organize shortcuts
         logger.info("=== Step 2: Organizing shortcuts into folders ===")
@@ -381,7 +407,7 @@ def main():
 
         # Step 3: Remove empty folders in input_menus
         logger.info("=== Step 3: Removing empty folders ===")
-        remove_empty_folders(config['input_menus'])
+        remove_empty_folders(config['input_menus'], ignored_folders)
         
         # Step 4: Remove temp folder after organizing
         logger.info("=== Step 4: Cleaning up temp folder ===")
