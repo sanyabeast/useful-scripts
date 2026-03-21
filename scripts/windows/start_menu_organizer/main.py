@@ -139,15 +139,15 @@ def move_shortcuts_to_temp(input_menus, temp_folder, exclude_patterns=None, igno
                 for file in files:
                     source = os.path.join(root, file)
                     
-                    if not file.endswith(".lnk"):
+                    if not (file.endswith(".lnk") or file.endswith(".url")):
                         if file.lower() == "desktop.ini":
                             logger.debug(f"Preserving desktop.ini: {source}")
                             continue
                         try:
                             os.remove(source)
-                            logger.info(f"Deleted (non-lnk file): {file}")
+                            logger.info(f"Deleted (non-lnk/url file): {file}")
                         except Exception as e:
-                            logger.error(f"Failed to delete non-lnk file {file}: {e}")
+                            logger.error(f"Failed to delete non-lnk/url file {file}: {e}")
                         continue
                     
                     if exclude_patterns and matches_any_pattern(file, exclude_patterns):
@@ -291,7 +291,7 @@ def create_folders_and_organize(temp_folder, output_menu, folders, misc_folder):
                     if has_wildcard:
                         matched_files = [
                             f for f in os.listdir(temp_folder)
-                            if f.endswith('.lnk') and match_pattern(shortcut_pattern, f, match_extension=False)
+                            if (f.endswith('.lnk') or f.endswith('.url')) and match_pattern(shortcut_pattern, f, match_extension=False)
                         ]
                         if matched_files:
                             for shortcut_file in matched_files:
@@ -306,19 +306,20 @@ def create_folders_and_organize(temp_folder, output_menu, folders, misc_folder):
                         else:
                             logger.warning(f"No shortcuts matched pattern: {shortcut_pattern}")
                     else:
-                        shortcut_file = shortcut_pattern + ".lnk"
-                        shortcut_path = os.path.join(temp_folder, shortcut_file)
-                        
-                        if os.path.exists(shortcut_path):
-                            try:
-                                shutil.copy(shortcut_path, folder_path)
-                                logger.info(f"Copied: {shortcut_file} -> {folder_path}")
-                                shortcuts_organized += 1
-                            except Exception as e:
-                                logger.error(f"Failed to copy {shortcut_file} to {folder_path}: {e}")
-                                errors_encountered += 1
-                        else:
-                            logger.warning(f"Shortcut not found in temp folder: {shortcut_file}")
+                        for ext in ['.lnk', '.url']:
+                            shortcut_file = shortcut_pattern + ext
+                            shortcut_path = os.path.join(temp_folder, shortcut_file)
+                            
+                            if os.path.exists(shortcut_path):
+                                try:
+                                    shutil.copy(shortcut_path, folder_path)
+                                    logger.info(f"Copied: {shortcut_file} -> {folder_path}")
+                                    shortcuts_organized += 1
+                                except Exception as e:
+                                    logger.error(f"Failed to copy {shortcut_file} to {folder_path}: {e}")
+                                    errors_encountered += 1
+                            else:
+                                logger.warning(f"Shortcut not found in temp folder: {shortcut_file}")
                         
             except Exception as e:
                 logger.error(f"Error creating/processing folder {folder_name}: {e}")
@@ -330,7 +331,7 @@ def create_folders_and_organize(temp_folder, output_menu, folders, misc_folder):
             
             # Move remaining shortcuts to the misc folder
             if os.path.exists(temp_folder):
-                remaining_files = [f for f in os.listdir(temp_folder) if f.endswith(".lnk")]
+                remaining_files = [f for f in os.listdir(temp_folder) if f.endswith(".lnk") or f.endswith(".url")]
                 logger.info(f"Moving {len(remaining_files)} remaining shortcuts to misc folder: {misc_folder_path}")
                 
                 for file in remaining_files:
