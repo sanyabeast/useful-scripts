@@ -82,7 +82,7 @@ class Logger:
         print()
 
 
-AUDIO_EXTENSIONS = ['*.m4a', '*.mp3', '*.flac', '*.wav', '*.ogg']
+AUDIO_EXTENSIONS = ['*.m4a', '*.mp3', '*.flac', '*.wav', '*.ogg', '*.opus']
 
 
 def sanitize_name(text: str) -> str:
